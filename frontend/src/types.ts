@@ -53,9 +53,11 @@ export interface FillerPressure {
   worst_topic: string
 }
 
+export interface CodeSwitchInstance { t: number; lang: string; txt: string }
+
 export interface CodeSwitching {
   count: number
-  instances: string[]
+  instances: Array<string | CodeSwitchInstance>
 }
 
 export interface GrayZone {

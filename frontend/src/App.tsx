@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fetchConversations, fetchPreset } from './api'
 import Dashboard from './components/Dashboard'
@@ -206,72 +206,257 @@ function ImportScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (dat
 
 // ─── Live ─────────────────────────────────────────────────────────────────────
 
-const STEPS = ['Recording', 'Transcribing', 'Analyzing', 'Done']
+const PROCESS_STEPS = [
+  { label: 'Uploading audio…',          until: 4  },
+  { label: 'Transcribing with Deepgram…', until: 55 },
+  { label: 'Analyzing with Claude…',    until: 90 },
+  { label: 'Building your dashboard…',  until: Infinity },
+]
 
-function LiveScreen({ onBack }: { onBack: () => void }) {
-  const [step, setStep] = useState(0)
+function fmt(s: number) {
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+}
+
+function LiveScreen({ onBack, onSelect }: {
+  onBack: () => void
+  onSelect: (data: AnalysisResult) => void
+}) {
+  const [studentId, setStudentId]     = useState(() => localStorage.getItem('lc_student_id') || '')
+  const [phase, setPhase]             = useState<'setup' | 'recording' | 'processing' | 'error'>('setup')
+  const [elapsed, setElapsed]         = useState(0)
+  const [procElapsed, setProcElapsed] = useState(0)
+  const [error, setError]             = useState<string | null>(null)
+
+  const mediaRef  = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const timerRef  = useRef<ReturnType<typeof setInterval> | null>(null)
+  const procRef   = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => () => {
+    clearInterval(timerRef.current!)
+    clearInterval(procRef.current!)
+  }, [])
+
+  async function startRecording() {
+    const sid = studentId.trim()
+    if (!sid) return
+    localStorage.setItem('lc_student_id', sid)
+    try {
+      const stream   = await navigator.mediaDevices.getUserMedia({ audio: true })
+      chunksRef.current = []
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : ''
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      recorder.start(500)
+      mediaRef.current = recorder
+      setElapsed(0)
+      setPhase('recording')
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+    } catch {
+      setError('Microphone access denied. Allow microphone access and try again.')
+    }
+  }
+
+  async function stopAndAnalyze() {
+    const recorder = mediaRef.current
+    if (!recorder) return
+    clearInterval(timerRef.current!)
+    recorder.stream.getTracks().forEach(t => t.stop())
+
+    await new Promise<void>(resolve => { recorder.onstop = () => resolve(); recorder.stop() })
+
+    setPhase('processing')
+    setProcElapsed(0)
+    procRef.current = setInterval(() => setProcElapsed(s => s + 1), 1000)
+
+    try {
+      const mimeType = recorder.mimeType || 'audio/webm'
+      const blob = new Blob(chunksRef.current, { type: mimeType })
+      const ext  = mimeType.includes('ogg') ? 'ogg' : 'webm'
+
+      const form = new FormData()
+      form.append('audio', blob, `recording.${ext}`)
+      form.append('student_id', studentId.trim())
+      form.append('label', `Session ${new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}`)
+
+      const res = await fetch('/api/live/upload', { method: 'POST', body: form })
+      if (!res.ok) {
+        const msg = await res.text().catch(() => `HTTP ${res.status}`)
+        throw new Error(msg)
+      }
+      clearInterval(procRef.current!)
+      onSelect(await res.json())
+    } catch (e: unknown) {
+      clearInterval(procRef.current!)
+      setError(e instanceof Error ? e.message : 'Analysis failed. Is the backend running?')
+      setPhase('error')
+    }
+  }
+
+  const procStep = PROCESS_STEPS.findIndex(s => procElapsed < s.until)
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F6', padding: '40px' }}>
       <div style={{ maxWidth: 440, margin: '0 auto' }}>
-        <button
-          onClick={onBack}
+
+        <button onClick={onBack}
           style={{ fontSize: 12, color: S.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 4 }}
           onMouseEnter={e => (e.currentTarget.style.color = S.ink)}
-          onMouseLeave={e => (e.currentTarget.style.color = S.muted)}
-        >
+          onMouseLeave={e => (e.currentTarget.style.color = S.muted)}>
           ← Back
         </button>
 
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: S.ink, letterSpacing: '-0.03em', marginBottom: 6 }}>Live Demo</h1>
-        <p style={{ fontSize: 13, color: S.muted, marginBottom: 36 }}>Record a session and get instant analysis</p>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: S.ink, letterSpacing: '-0.03em', marginBottom: 6 }}>Live Recording</h1>
+        <p style={{ fontSize: 13, color: S.muted, marginBottom: 36 }}>
+          Record a session · results saved under your name · compare across sessions
+        </p>
 
-        <div style={{ border: '1px solid #EBEBEB', borderRadius: 6, overflow: 'hidden', marginBottom: 20 }}>
-          {STEPS.map((s, i) => (
-            <div key={s} style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
-              borderBottom: i < STEPS.length - 1 ? '1px solid #F3F4F6' : 'none',
-              background: i === step ? '#FAFAFA' : '#FFFFFF',
-            }}>
-              <div style={{
-                width: 24, height: 24, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 700, flexShrink: 0,
-                ...(i < step
-                  ? { background: S.ink, color: '#FFFFFF' }
-                  : i === step
-                  ? { border: '1.5px solid #FF4D7E', color: '#FF4D7E' }
-                  : { border: '1px solid #E5E7EB', color: '#D1D5DB' })
-              }}>
-                {i < step ? '✓' : i + 1}
+        {/* ── Setup ── */}
+        {phase === 'setup' && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: S.muted, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>
+              Student name / ID
+            </label>
+            <input
+              value={studentId}
+              onChange={e => setStudentId(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && studentId.trim() && startRecording()}
+              placeholder="e.g. maria-garcia"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '11px 14px', borderRadius: 8,
+                border: '1px solid #EBEBEB', fontSize: 14,
+                outline: 'none', marginBottom: 20,
+                background: '#FFFFFF', color: S.ink,
+              }}
+              autoFocus
+            />
+            <p style={{ fontSize: 12, color: S.muted, marginBottom: 24, lineHeight: 1.5 }}>
+              Every recording you make will be saved under this name so you can track progression across sessions.
+            </p>
+            <button
+              onClick={startRecording}
+              disabled={!studentId.trim()}
+              style={{
+                width: '100%', padding: '13px', borderRadius: 8,
+                fontWeight: 700, fontSize: 14, color: '#FFFFFF',
+                background: studentId.trim() ? '#FF4D7E' : '#D1D5DB',
+                border: 'none', cursor: studentId.trim() ? 'pointer' : 'default',
+                transition: 'background 0.15s',
+              }}
+            >
+              Start Recording
+            </button>
+          </motion.div>
+        )}
+
+        {/* ── Recording ── */}
+        {phase === 'recording' && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32 }}>
+
+            {/* Pulsing indicator */}
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <motion.div
+                animate={{ scale: [1, 1.25, 1], opacity: [0.15, 0.05, 0.15] }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                style={{ position: 'absolute', width: 96, height: 96, borderRadius: '50%', background: '#FF4D7E' }} />
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FF4D7E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
+                  <rect x="9" y="2" width="6" height="13" rx="3" />
+                  <path d="M5 10a7 7 0 0014 0" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                  <line x1="12" y1="19" x2="12" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </div>
-              <span style={{ fontSize: 13, fontWeight: i <= step ? 600 : 400, color: i <= step ? S.ink : S.muted }}>
-                {s}
-              </span>
-              {i === step && (
-                <motion.span
-                  animate={{ opacity: [1, 0.3, 1] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                  style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: '#FF4D7E', flexShrink: 0 }}
-                />
-              )}
             </div>
-          ))}
-        </div>
 
-        <button
-          onClick={() => setStep(s => Math.min(s + 1, STEPS.length - 1))}
-          style={{
-            width: '100%', padding: '12px', borderRadius: 4,
-            fontWeight: 700, fontSize: 13, color: '#FFFFFF',
-            background: S.ink, border: 'none', cursor: 'pointer',
-            transition: 'background 0.12s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#374151')}
-          onMouseLeave={e => (e.currentTarget.style.background = S.ink)}
-        >
-          {step === 0 ? 'Start Recording' : step === STEPS.length - 1 ? 'View Results' : 'Next step (demo)'}
-        </button>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 48, fontWeight: 800, color: S.ink, letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums' }}>
+                {fmt(elapsed)}
+              </div>
+              <div style={{ fontSize: 12, color: S.muted, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Recording · {studentId}
+              </div>
+            </div>
+
+            <button
+              onClick={stopAndAnalyze}
+              style={{
+                width: '100%', padding: '13px', borderRadius: 8,
+                fontWeight: 700, fontSize: 14, color: '#FFFFFF',
+                background: S.ink, border: 'none', cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#374151')}
+              onMouseLeave={e => (e.currentTarget.style.background = S.ink)}
+            >
+              Stop &amp; Analyze
+            </button>
+          </motion.div>
+        )}
+
+        {/* ── Processing ── */}
+        {phase === 'processing' && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{ border: '1px solid #EBEBEB', borderRadius: 10, overflow: 'hidden', marginBottom: 16 }}>
+              {PROCESS_STEPS.map((s, i) => {
+                const done    = i < procStep
+                const active  = i === procStep
+                return (
+                  <div key={s.label} style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+                    borderBottom: i < PROCESS_STEPS.length - 1 ? '1px solid #F3F4F6' : 'none',
+                    background: active ? '#FAFAFA' : '#FFFFFF',
+                  }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 700, flexShrink: 0,
+                      ...(done
+                        ? { background: S.ink, color: '#FFFFFF' }
+                        : active
+                        ? { border: '1.5px solid #FF4D7E', color: '#FF4D7E' }
+                        : { border: '1px solid #E5E7EB', color: '#D1D5DB' })
+                    }}>
+                      {done ? '✓' : i + 1}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: done || active ? 600 : 400, color: done || active ? S.ink : S.muted, flex: 1 }}>
+                      {s.label}
+                    </span>
+                    {active && (
+                      <motion.span
+                        animate={{ opacity: [1, 0.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 1.4 }}
+                        style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF4D7E', flexShrink: 0 }}
+                      />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <p style={{ fontSize: 12, color: S.muted, textAlign: 'center' }}>
+              {fmt(procElapsed)} elapsed · usually 60–90 s total
+            </p>
+          </motion.div>
+        )}
+
+        {/* ── Error ── */}
+        {phase === 'error' && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{ borderRadius: 8, padding: '14px 16px', marginBottom: 20, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', color: '#DC2626', fontSize: 13, lineHeight: 1.5 }}>
+              {error}
+            </div>
+            <button
+              onClick={() => { setError(null); setPhase('setup') }}
+              style={{ width: '100%', padding: '12px', borderRadius: 8, fontWeight: 700, fontSize: 13, color: '#FFFFFF', background: S.ink, border: 'none', cursor: 'pointer' }}
+            >
+              Try again
+            </button>
+          </motion.div>
+        )}
+
       </div>
     </div>
   )
@@ -297,7 +482,7 @@ export default function App() {
       >
         {screen === 'home'      && <HomeScreen   onImport={() => setScreen('import')} onLive={() => setScreen('live')} />}
         {screen === 'import'    && <ImportScreen  onBack={() => setScreen('home')} onSelect={showDashboard} />}
-        {screen === 'live'      && <LiveScreen    onBack={() => setScreen('home')} />}
+        {screen === 'live'      && <LiveScreen    onBack={() => setScreen('home')} onSelect={showDashboard} />}
         {screen === 'dashboard' && result && <Dashboard data={result} onBack={() => setScreen('import')} />}
       </motion.div>
     </AnimatePresence>

@@ -20,7 +20,6 @@
     "react-force-graph-2d": "^1.29.1",
     "react-gauge-component": "^2.0.28",
     "react-is": "^19.2.5",
-    "react-wordcloud": "^1.2.7",
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2"

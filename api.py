@@ -16,10 +16,12 @@ Run:
 """
 
 import json
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,6 +44,9 @@ app.add_middleware(
 
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
+
+RECORDINGS_DIR = Path("recordings")
+RECORDINGS_DIR.mkdir(exist_ok=True)
 
 # Serve the React SPA at /
 @app.get("/", include_in_schema=False)
@@ -201,6 +206,45 @@ def to_session_dict(label: str, f: dict, m: dict, llm: dict, is_first: bool) -> 
     }
 
 
+def build_progression_from_sessions(sessions: list) -> Optional[dict]:
+    """Build progression from stored session dicts (oldest first)."""
+    if len(sessions) < 2:
+        return None
+    labels = [s["label"] for s in sessions]
+    cefrs  = [(s.get("cefr") or {}).get("level", "?") for s in sessions]
+    a, b   = sessions[0], sessions[-1]
+    checks = [
+        ("Talk time growing",    b["talk_ratio"]["student_pct"]  > a["talk_ratio"]["student_pct"]),
+        ("Vocabulary expanding", b["new_words"]["total_vocab"]   > a["new_words"]["total_vocab"]),
+        ("Fewer fillers",        b["filler_pressure"]["total"]   < a["filler_pressure"]["total"]),
+        ("Agency increasing",    b["agency"]["score"]            > a["agency"]["score"]),
+        ("Active recall",        b["active_recall"]["count"]     > 0),
+    ]
+    good = sum(1 for _, v in checks if v)
+    verdict = (
+        "Clear progression detected."                if good >= 4 else
+        "Mixed signals — improvement in some areas." if good >= 2 else
+        "Plateau or regression. Review tutor strategy."
+    )
+    return {
+        "labels": labels,
+        "metrics_table": {
+            "talk_time_pct": [s["talk_ratio"]["student_pct"]  for s in sessions],
+            "new_words":     [s["new_words"]["new_count"]     for s in sessions],
+            "total_vocab":   [s["new_words"]["total_vocab"]   for s in sessions],
+            "fillers":       [s["filler_pressure"]["total"]   for s in sessions],
+            "agency_score":  [s["agency"]["score"]            for s in sessions],
+            "active_recall": [s["active_recall"]["count"]     for s in sessions],
+            "cefr":          cefrs,
+        },
+        "signals":        [{"name": n, "positive": ok} for n, ok in checks],
+        "positive_count": good,
+        "total_signals":  len(checks),
+        "verdict":        verdict,
+        "cefr_journey":   cefrs,
+    }
+
+
 def build_progression(labels: list, all_m: list, all_llm: list) -> Optional[dict]:
     if len(all_m) < 2:
         return None
@@ -341,37 +385,80 @@ def student_history(student_id: str, limit: int = 20):
     return {"student_id": student_id, "sessions": rows}
 
 
-# ─── Live recording  (placeholder — wired in once recordings exist) ───────────
+# ─── Live recording ───────────────────────────────────────────────────────────
 
-@app.post("/live/start")
-def live_start():
+@app.post("/live/upload")
+async def live_upload(
+    audio:      UploadFile = File(...),
+    student_id: str        = Form(default="live-student"),
+    label:      str        = Form(default=""),
+):
     """
-    [PLACEHOLDER]  Will trigger record.py and return a session_id.
-    The frontend shows a 'Recording...' state until /live/stop is called.
+    Accepts a browser audio recording (WebM/OGG/WAV), transcribes with Deepgram,
+    runs the full 12-metric pipeline, saves to DB under student_id, and returns
+    the complete dashboard payload with cross-session progression.
     """
+    from deepgram import DeepgramClient, PrerecordedOptions
+
+    dg_key = os.environ.get("DEEPGRAM_API_KEY", "")
+    if not dg_key:
+        raise HTTPException(status_code=500, detail="DEEPGRAM_API_KEY not configured")
+
+    # 1. Save the audio file
+    ts             = datetime.now().strftime("%Y%m%d_%H%M%S")
+    session_label  = label.strip() or f"Session {ts}"
+    ext            = Path(audio.filename or "rec.webm").suffix or ".webm"
+    audio_path     = RECORDINGS_DIR / f"{student_id}_{ts}{ext}"
+    audio_bytes    = await audio.read()
+    audio_path.write_bytes(audio_bytes)
+
+    # 2. Transcribe with Deepgram SDK (supports WebM, OGG, WAV, MP3…)
+    dg_client = DeepgramClient(api_key=dg_key)
+    options = PrerecordedOptions(
+        model="nova-3", language="en",
+        punctuate=True, smart_format=True, paragraphs=True,
+        utterances=True, filler_words=True, diarize=True,
+        sentiment=True, topics=True, intents=True, summarize=True,
+    )
+    response = dg_client.listen.rest.v("1").transcribe_file(
+        {"buffer": audio_bytes}, options
+    )
+    dg_json = response.to_dict()
+
+    # Save at the exact cache path run_one looks for, so it skips the Deepgram call
+    cache_path = str(audio_path).rsplit(".", 1)[0] + "_rich.json"
+    Path(cache_path).write_text(
+        json.dumps(dg_json, ensure_ascii=False), encoding="utf-8"
+    )
+
+    # 3. Run the 12-metric pipeline (uses cached JSON, no second Deepgram call)
+    prev_rows = db.get_history(student_id, limit=1)
+    is_first  = len(prev_rows) == 0
+    f, m, llm = run_one(str(audio_path), "audio", None, None, None)
+    session_dict = to_session_dict(session_label, f, m, llm, is_first=is_first)
+
+    # 4. Persist to DB
+    db.save_session(
+        student_id=student_id,
+        label=session_label,
+        source=str(audio_path),
+        result=session_dict,
+    )
+
+    # 5. Load all sessions for this student (DB returns newest-first → reverse)
+    all_rows     = db.get_history(student_id, limit=20)
+    all_sessions = [row["result"] for row in reversed(all_rows)]
+
+    # 6. Build cross-session progression
+    progression = build_progression_from_sessions(all_sessions)
+
     return {
-        "status":     "not_implemented",
-        "session_id": None,
-        "message":    "Plug in record.py here when ready.",
+        "sessions":   all_sessions,
+        "progression": progression,
+        "preset": {
+            "id":    f"live_{student_id}",
+            "name":  student_id,
+            "story": "live",
+            "badge": "LIVE",
+        },
     }
-
-
-@app.post("/live/stop/{session_id}")
-def live_stop(session_id: str):
-    """
-    [PLACEHOLDER]  Stops recording, runs:
-      record.py → transcribe_rich.py → run_one(audio) → returns full dashboard
-    """
-    return {"status": "not_implemented", "session_id": session_id}
-
-
-@app.get("/live/status/{session_id}")
-def live_status(session_id: str):
-    """
-    [PLACEHOLDER]  SSE stream — will emit progress events:
-      recording → transcribing → analyzing → done
-    The frontend subscribes to this to show a real-time progress bar.
-    """
-    def _stream():
-        yield 'data: {"step": "not_implemented"}\n\n'
-    return StreamingResponse(_stream(), media_type="text/event-stream")

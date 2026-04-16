@@ -34,7 +34,7 @@ import TopicExpansion from './metrics/TopicExpansion'
 import SelfRepairs    from './metrics/SelfRepairs'
 import ActiveRecall   from './metrics/ActiveRecall'
 
-const CEFR_RANK: Record<string, number>   = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4, C2: 5 }
+const CEFR_RANK: Record<string, number> = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4, C2: 5 }
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
 const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
@@ -61,6 +61,255 @@ const T = {
     textTransform: 'uppercase', letterSpacing: '0.09em',
     marginBottom: 18,
   } as React.CSSProperties,
+}
+
+// ─── CompareConfig type ───────────────────────────────────────────────────────
+
+type CompareConfig = {
+  title: string
+  subtitle: string
+  values: number[]
+  labels: string[]
+  unit: string
+  upIsGood: boolean
+  formatVal?: (v: number) => string
+}
+
+// ─── TrendSparkline ───────────────────────────────────────────────────────────
+
+function TrendSparkline({
+  values, activeIdx, upIsGood = true, width = 80, height = 26,
+}: {
+  values: number[]; activeIdx: number; upIsGood?: boolean;
+  width?: number; height?: number;
+}) {
+  if (!values || values.length < 2) return null
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const pad = 4
+  const pts = values.map((v, i) => ({
+    x: pad + (i / (values.length - 1)) * (width - pad * 2),
+    y: (height - pad) - ((v - min) / range) * (height - pad * 2),
+  }))
+  const polyline = pts.map(p => `${p.x},${p.y}`).join(' ')
+  const isGood = upIsGood
+    ? values[values.length - 1] >= values[0]
+    : values[values.length - 1] <= values[0]
+  const color = isGood ? '#34D399' : '#FCA5A5'
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}
+      style={{ display: 'block', overflow: 'visible', flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.12" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon
+        points={`${pts[0].x},${height} ${polyline} ${pts[pts.length - 1].x},${height}`}
+        fill="url(#sg)" />
+      <polyline points={polyline} fill="none" stroke={color}
+        strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" opacity={0.7} />
+      {pts.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y}
+          r={i === activeIdx ? 3.5 : 2}
+          fill={i === activeIdx ? color : '#FFFFFF'}
+          stroke={color}
+          strokeWidth={i === activeIdx ? 1.5 : 1}
+          opacity={i === activeIdx ? 1 : 0.55} />
+      ))}
+    </svg>
+  )
+}
+
+// ─── LineChart ────────────────────────────────────────────────────────────────
+
+function LineChart({ values, labels, activeIdx, upIsGood = true, unit = '', formatVal }: {
+  values: number[]; labels: string[]; activeIdx?: number;
+  upIsGood?: boolean; unit?: string; formatVal?: (v: number) => string;
+}) {
+  const W = 432, H = 196
+  const PL = 44, PT = 20, PR = 16, PB = 40
+  const pw = W - PL - PR, ph = H - PT - PB
+  const n = values.length
+  if (n < 1) return null
+
+  const rawMin = Math.min(...values), rawMax = Math.max(...values)
+  const span = rawMax - rawMin || 1
+  const yMin = rawMin - span * 0.12, yMax = rawMax + span * 0.18
+  const xOf = (i: number) => PL + (n === 1 ? pw / 2 : (i / (n - 1)) * pw)
+  const yOf = (v: number) => PT + (1 - (v - yMin) / (yMax - yMin)) * ph
+
+  const pts = values.map((v, i) => ({ x: xOf(i), y: yOf(v), v }))
+  const polyStr = pts.map(p => `${p.x},${p.y}`).join(' ')
+  const areaPath = `M${pts[0].x},${PT + ph} L${pts.map(p => `${p.x},${p.y}`).join(' L')} L${pts[pts.length - 1].x},${PT + ph} Z`
+  const isGood = upIsGood
+    ? values[values.length - 1] >= values[0]
+    : values[values.length - 1] <= values[0]
+  const color = isGood ? '#34D399' : '#F87171'
+  const fmt = formatVal ?? ((v: number) => Number.isInteger(v) ? String(v) : v.toFixed(1))
+  const ticks = [0, 1, 2, 3].map(i => yMin + (yMax - yMin) * (i / 3))
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+      <defs>
+        <linearGradient id="lc-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.16" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      {ticks.map((t, i) => {
+        const y = yOf(t)
+        return (
+          <g key={i}>
+            <line x1={PL} y1={y} x2={W - PR} y2={y}
+              stroke="#F0F0F0" strokeWidth={1} strokeDasharray="4 3" />
+            <text x={PL - 6} y={y + 3.5} textAnchor="end" fontSize={9} fill="#C4C4CC">
+              {fmt(t)}{unit === '%' ? '%' : ''}
+            </text>
+          </g>
+        )
+      })}
+      <line x1={PL} y1={PT + ph} x2={W - PR} y2={PT + ph} stroke="#EAEAEA" strokeWidth={1} />
+      {pts.map((p, i) => (
+        <text key={i} x={p.x} y={PT + ph + 14} textAnchor="middle" fontSize={9} fill="#C4C4CC">
+          {(labels[i] ?? `S${i + 1}`).replace('Session ', 'S')}
+        </text>
+      ))}
+      <path d={areaPath} fill="url(#lc-area)" />
+      <polyline points={polyStr} fill="none" stroke={color}
+        strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      {pts.map((p, i) => {
+        const isActive = i === activeIdx
+        const label = `${fmt(p.v)}${unit === '%' ? '%' : unit.startsWith('/') ? unit : ''}`
+        return (
+          <g key={i}>
+            {isActive && <circle cx={p.x} cy={p.y} r={11} fill="#FE79AB" opacity={0.10} />}
+            <circle cx={p.x} cy={p.y} r={isActive ? 5 : 3.5}
+              fill={isActive ? '#FE79AB' : '#FFFFFF'}
+              stroke={isActive ? '#FE79AB' : color}
+              strokeWidth={isActive ? 2 : 1.5} />
+            <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize={9.5}
+              fontWeight={isActive ? '700' : '500'}
+              fill={isActive ? '#FE79AB' : '#6B7280'}>
+              {label}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+// ─── CompareModal ─────────────────────────────────────────────────────────────
+
+function CompareModal({ config, activeIdx, onClose }: {
+  config: CompareConfig; activeIdx: number; onClose: () => void;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  const n = config.values.length
+  const delta = n >= 2 ? config.values[n - 1] - config.values[0] : 0
+  const isImproving = config.upIsGood ? delta >= 0 : delta <= 0
+  const fmt = config.formatVal ?? ((v: number) => v.toFixed(1))
+  const fmtDelta = `${delta >= 0 ? '+' : '−'}${fmt(Math.abs(delta))}${config.unit === '%' ? '%' : ' ' + config.unit.trim()}`
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(18,17,20,0.5)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#FFFFFF', borderRadius: 16,
+          padding: '24px 24px 20px', width: '100%', maxWidth: 520,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18 }}>
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#121114', margin: 0 }}>
+              {config.title}
+            </h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>{config.subtitle}</p>
+          </div>
+          <button onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 20, color: '#C4C4CC', lineHeight: 1, padding: 4 }}>
+            ×
+          </button>
+        </div>
+
+        <LineChart
+          values={config.values} labels={config.labels} activeIdx={activeIdx}
+          upIsGood={config.upIsGood} unit={config.unit} formatVal={config.formatVal} />
+
+        {n >= 2 && (
+          <div style={{
+            marginTop: 14, padding: '9px 14px', borderRadius: 10,
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: isImproving ? 'rgba(52,211,153,0.07)' : 'rgba(248,113,113,0.07)',
+            border: `1px solid ${isImproving ? 'rgba(52,211,153,0.22)' : 'rgba(248,113,113,0.22)'}`,
+          }}>
+            <span style={{ fontSize: 16 }}>{isImproving ? '↗' : '↘'}</span>
+            <p style={{ fontSize: 13, fontWeight: 600, margin: 0,
+              color: isImproving ? '#059669' : '#DC2626' }}>
+              {fmtDelta} from {config.labels[0]} to {config.labels[n - 1]}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── CardHeader ───────────────────────────────────────────────────────────────
+
+function CardHeader({ label, trend, activeIdx, upIsGood = true, onCompare }: {
+  label: string
+  trend?: number[]
+  activeIdx?: number
+  upIsGood?: boolean
+  onCompare?: () => void
+}) {
+  const showExtras = onCompare && trend && trend.length >= 2 && activeIdx !== undefined
+  if (!showExtras) {
+    return <div style={T.metricLabel}>{label}</div>
+  }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.09em' }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <TrendSparkline values={trend} activeIdx={activeIdx} upIsGood={upIsGood} />
+        <button
+          onClick={onCompare}
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
+            color: '#C4C4CC', background: 'none', border: 'none',
+            cursor: 'pointer', padding: '2px 0', lineHeight: 1, flexShrink: 0,
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#FE79AB')}
+          onMouseLeave={e => (e.currentTarget.style.color = '#C4C4CC')}
+        >
+          COMPARE ↗
+        </button>
+      </div>
+    </div>
+  )
 }
 
 // ─── PremiumCard ──────────────────────────────────────────────────────────────
@@ -298,13 +547,20 @@ function OverviewSection({ session, progression }: {
 
 // ─── Section 2: Communication ─────────────────────────────────────────────────
 
-function CommunicationSection({ session }: { session: Session }) {
+function CommunicationSection({ session, progression, activeSession, onCompareTalkRatio, onCompareAgency }: {
+  session: Session
+  progression: NonNullable<AnalysisResult['progression']> | null
+  activeSession: number
+  onCompareTalkRatio?: () => void
+  onCompareAgency?: () => void
+}) {
+  const mt = progression?.metrics_table
   return (
     <Section label="Communication">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
         <PremiumCard>
-          <div style={T.metricLabel}>Talk Ratio</div>
+          <CardHeader label="Talk Ratio" trend={mt?.talk_time_pct} activeIdx={activeSession} upIsGood={true} onCompare={onCompareTalkRatio} />
           {session.talk_ratio ? (
             <TalkRatio
               studentPercent={session.talk_ratio.student_pct}
@@ -315,7 +571,7 @@ function CommunicationSection({ session }: { session: Session }) {
         </PremiumCard>
 
         <PremiumCard>
-          <div style={T.metricLabel}>Conversational Agency</div>
+          <CardHeader label="Conversational Agency" trend={mt?.agency_score} activeIdx={activeSession} upIsGood={true} onCompare={onCompareAgency} />
           {session.agency
             ? <AgencyGauge data={session.agency} />
             : <p style={{ fontSize: 13, color: T.muted }}>No data</p>}
@@ -328,7 +584,13 @@ function CommunicationSection({ session }: { session: Session }) {
 
 // ─── Section 3: Session Patterns ─────────────────────────────────────────────
 
-function PatternsSection({ session }: { session: Session }) {
+function PatternsSection({ session, progression, activeSession, onCompareFillers }: {
+  session: Session
+  progression: NonNullable<AnalysisResult['progression']> | null
+  activeSession: number
+  onCompareFillers?: () => void
+}) {
+  const mt = progression?.metrics_table
   return (
     <Section label="Session Patterns">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
@@ -339,7 +601,7 @@ function PatternsSection({ session }: { session: Session }) {
         </PremiumCard>
 
         <PremiumCard>
-          <div style={T.metricLabel}>Filler Pressure</div>
+          <CardHeader label="Filler Pressure" trend={mt?.fillers} activeIdx={activeSession} upIsGood={false} onCompare={onCompareFillers} />
           <FillerPressure data={session.filler_pressure} />
         </PremiumCard>
 
@@ -355,18 +617,25 @@ function PatternsSection({ session }: { session: Session }) {
 
 // ─── Section 4: Vocabulary ────────────────────────────────────────────────────
 
-function VocabularySection({ session }: { session: Session }) {
+function VocabularySection({ session, progression, activeSession, onCompareVocab, onCompareRecall }: {
+  session: Session
+  progression: NonNullable<AnalysisResult['progression']> | null
+  activeSession: number
+  onCompareVocab?: () => void
+  onCompareRecall?: () => void
+}) {
+  const mt = progression?.metrics_table
   return (
     <Section label="Vocabulary">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16 }}>
 
         <PremiumCard>
-          <div style={T.metricLabel}>New Words</div>
+          <CardHeader label="New Words" trend={mt?.total_vocab} activeIdx={activeSession} upIsGood={true} onCompare={onCompareVocab} />
           <NewWords data={session.new_words} />
         </PremiumCard>
 
         <PremiumCard>
-          <div style={T.metricLabel}>Active Recall</div>
+          <CardHeader label="Active Recall" trend={mt?.active_recall} activeIdx={activeSession} upIsGood={true} onCompare={onCompareRecall} />
           <ActiveRecall data={session.active_recall} />
         </PremiumCard>
 
@@ -420,7 +689,7 @@ function DiagnosticSection({ session }: { session: Session }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {session.code_switching.instances.slice(0, 3).map((inst, i) => (
                 <p key={i} style={{ fontSize: 12, color: T.gray, fontStyle: 'italic', lineHeight: 1.5, margin: 0, borderLeft: '2px solid #EBEBEB', paddingLeft: 10 }}>
-                  "{inst}"
+                  "{typeof inst === 'string' ? inst : (inst as { txt: string }).txt}"
                 </p>
               ))}
             </div>
@@ -464,7 +733,8 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
     }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px', height: '100%', display: 'flex', alignItems: 'center', gap: 14 }}>
 
-        <button onClick={onBack} style={{ fontSize: 12, color: T.muted, display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+        <button onClick={onBack}
+          style={{ fontSize: 12, color: T.muted, display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           onMouseEnter={e => (e.currentTarget.style.color = T.ink)}
           onMouseLeave={e => (e.currentTarget.style.color = T.muted)}>
           ← Back
@@ -482,17 +752,49 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
           </>
         )}
 
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-          {sessions.map((s, i) => (
-            <button key={i} onClick={() => setActiveSession(i)} style={{
-              padding: '4px 12px', borderRadius: 4, fontSize: 11, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-              ...(activeSession === i
-                ? { background: T.ink, color: '#FFFFFF', fontWeight: 700 }
-                : { background: 'rgba(0,0,0,0.05)', color: T.gray })
-            }}>
-              {s.label}
-            </button>
-          ))}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {sessions.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                onClick={() => setActiveSession(Math.max(0, activeSession - 1))}
+                disabled={activeSession === 0}
+                style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  border: '1px solid #D9D9DE', background: 'none',
+                  cursor: activeSession === 0 ? 'default' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: activeSession === 0 ? '#D9D9DE' : '#6F6F78',
+                  fontSize: 16, lineHeight: 1,
+                }}
+              >
+                ‹
+              </button>
+
+              <div style={{ textAlign: 'center', minWidth: 120 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#121114' }}>
+                  {sessions[activeSession]?.label}
+                </span>
+                <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>
+                  {activeSession + 1} / {sessions.length}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setActiveSession(Math.min(sessions.length - 1, activeSession + 1))}
+                disabled={activeSession === sessions.length - 1}
+                style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  border: '1px solid #D9D9DE', background: 'none',
+                  cursor: activeSession === sessions.length - 1 ? 'default' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: activeSession === sessions.length - 1 ? '#D9D9DE' : '#6F6F78',
+                  fontSize: 16, lineHeight: 1,
+                }}
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
 
         {cefrJourney && cefrJourney.length >= 2 && (
@@ -507,16 +809,22 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
 
 // ─── Session View ──────────────────────────────────────────────────────────────
 
-function SessionView({ session, progression }: {
+function SessionView({ session, progression, activeSession, onCompareTalkRatio, onCompareAgency, onCompareFillers, onCompareVocab, onCompareRecall }: {
   session: Session
   progression: NonNullable<AnalysisResult['progression']> | null
+  activeSession: number
+  onCompareTalkRatio?: () => void
+  onCompareAgency?: () => void
+  onCompareFillers?: () => void
+  onCompareVocab?: () => void
+  onCompareRecall?: () => void
 }) {
   return (
     <div>
       <OverviewSection      session={session} progression={progression} />
-      <CommunicationSection session={session} />
-      <PatternsSection      session={session} />
-      <VocabularySection    session={session} />
+      <CommunicationSection session={session} progression={progression} activeSession={activeSession} onCompareTalkRatio={onCompareTalkRatio} onCompareAgency={onCompareAgency} />
+      <PatternsSection      session={session} progression={progression} activeSession={activeSession} onCompareFillers={onCompareFillers} />
+      <VocabularySection    session={session} progression={progression} activeSession={activeSession} onCompareVocab={onCompareVocab} onCompareRecall={onCompareRecall} />
       <DiagnosticSection    session={session} />
     </div>
   )
@@ -526,7 +834,45 @@ function SessionView({ session, progression }: {
 
 function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => void }) {
   const [activeSession, setActiveSession] = useState(0)
+  const [compareConfig, setCompareConfig] = useState<CompareConfig | null>(null)
   const sessions = data.sessions ?? []
+  const mt     = data.progression?.metrics_table
+  const labels = data.progression?.labels ?? []
+
+  const onCompareTalkRatio = mt ? () => setCompareConfig({
+    title: 'Talk Ratio',
+    subtitle: 'Student speaking time across sessions (%)',
+    values: mt.talk_time_pct, labels, unit: '%', upIsGood: true,
+    formatVal: v => v.toFixed(1),
+  }) : undefined
+
+  const onCompareAgency = mt ? () => setCompareConfig({
+    title: 'Conversational Agency',
+    subtitle: 'Agency score across sessions (0–10)',
+    values: mt.agency_score, labels, unit: '/10', upIsGood: true,
+    formatVal: v => v.toFixed(1),
+  }) : undefined
+
+  const onCompareFillers = mt ? () => setCompareConfig({
+    title: 'Filler Pressure',
+    subtitle: 'Total filler words per session',
+    values: mt.fillers, labels, unit: ' fillers', upIsGood: false,
+    formatVal: v => String(Math.round(v)),
+  }) : undefined
+
+  const onCompareVocab = mt ? () => setCompareConfig({
+    title: 'Total Vocabulary',
+    subtitle: 'Cumulative unique words across sessions',
+    values: mt.total_vocab, labels, unit: ' words', upIsGood: true,
+    formatVal: v => String(Math.round(v)),
+  }) : undefined
+
+  const onCompareRecall = mt ? () => setCompareConfig({
+    title: 'Active Recall',
+    subtitle: 'Words from previous sessions that reappeared',
+    values: mt.active_recall, labels, unit: ' words', upIsGood: true,
+    formatVal: v => String(Math.round(v)),
+  }) : undefined
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F6' }}>
@@ -535,13 +881,29 @@ function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => 
         <AnimatePresence mode="wait">
           {sessions[activeSession] ? (
             <motion.div key={activeSession} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
-              <SessionView session={sessions[activeSession]} progression={data.progression} />
+              <SessionView
+                session={sessions[activeSession]}
+                progression={data.progression}
+                activeSession={activeSession}
+                onCompareTalkRatio={onCompareTalkRatio}
+                onCompareAgency={onCompareAgency}
+                onCompareFillers={onCompareFillers}
+                onCompareVocab={onCompareVocab}
+                onCompareRecall={onCompareRecall}
+              />
             </motion.div>
           ) : (
             <p style={{ fontSize: 13, color: T.muted, padding: '48px 0' }}>No session data available.</p>
           )}
         </AnimatePresence>
       </div>
+      {compareConfig && (
+        <CompareModal
+          config={compareConfig}
+          activeIdx={activeSession}
+          onClose={() => setCompareConfig(null)}
+        />
+      )}
     </div>
   )
 }
