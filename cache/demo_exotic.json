@@ -1,0 +1,1641 @@
+{
+  "sessions": [
+    {
+      "label": "session-1_rich",
+      "cefr": {
+        "level": "A2",
+        "confidence": "high",
+        "reasoning": "The student communicates meaning through loosely connected clauses and isolated noun phrases ('bee wax uh for eating') rather than grammatically integrated sentences, which is characteristic of A2 production. Bright spots like 'antibacterial' and 'foraging' indicate receptive vocabulary reaching B1, but the persistent absence of tense marking, articles, and third-person -s inflection anchors productive output firmly at A2."
+      },
+      "talk_ratio": {
+        "student_pct": 42.8,
+        "tutor_pct": 57.2,
+        "student_words": 130,
+        "tutor_words": 164,
+        "status": "ok"
+      },
+      "new_words": {
+        "new_count": 39,
+        "total_vocab": 39,
+        "sample": [
+          "afraid",
+          "anti",
+          "antibacterial",
+          "attack",
+          "bee",
+          "beekeeping",
+          "bees",
+          "can",
+          "city",
+          "cough",
+          "country",
+          "countryside"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "i i not know this is possible",
+          "correction": "I didn't know this was possible",
+          "type": "grammar",
+          "explanation": "Missing auxiliary verb in negation ('did not know') and missing past tense ? a core A2/B1 gap in forming negative past simple constructions"
+        },
+        {
+          "error": "bee wax uh for eating",
+          "correction": "beeswax, which is used for eating",
+          "type": "grammar",
+          "explanation": "The noun phrase is dropped into the utterance without a relative clause or connector, producing a fragment; also 'beeswax' is one word, and its primary use is not eating ? suggests lexical-semantic imprecision"
+        },
+        {
+          "error": "my grandmother use honey for for cough",
+          "correction": "My grandmother uses honey for a cough",
+          "type": "grammar",
+          "explanation": "Third-person singular present simple requires the -s inflection ('uses'), and the count noun 'cough' requires an article ? both are persistent A2-level morphosyntactic targets"
+        }
+      ],
+      "session_summary": "The student discussed urban beekeeping, honey's medicinal uses, city ecology challenges, and rural vs. urban beekeeping contexts. A standout moment was the student successfully deploying the advanced word 'antibacterial' while struggling with basic subject-verb agreement in the same breath.",
+      "agency": {
+        "score": 9.8,
+        "pct": 77.8,
+        "initiations": 7,
+        "responses": 2,
+        "intents": [
+          "Share personal experience",
+          "Express opinion",
+          "Ask about topic",
+          "Learn vocabulary"
+        ],
+        "status": "proactive"
+      },
+      "active_recall": {
+        "count": 0,
+        "words": [],
+        "is_first_session": true
+      },
+      "self_repairs": {
+        "count": 4,
+        "examples": [
+          "uh attack or sting they sting you yes",
+          "bee wax uh for eating and also um i think for for medicine",
+          "i think uh in my country we have beekeeping but in in the countryside not city",
+          "foraging new word for me is like searching for food"
+        ],
+        "verdict": "The student consistently catches lexical imprecision and reformulates in real time (e.g., replacing 'attack' with 'sting'), revealing solid metacognitive monitoring at the word level even when grammatical monitoring lags behind."
+      },
+      "filler_pressure": {
+        "total": 2,
+        "by_topic": {
+          "Food Production": 2
+        },
+        "worst_topic": "Food Production"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "conditional clauses (second conditional)",
+            "expected_because": "the student raised hypothetical scenarios about neighbors being afraid and bees having no flowers, which canonically call for 'if + would' structures at B1+",
+            "evidence": "maybe the uh the neighbors they can they can be afraid"
+          },
+          {
+            "structure": "relative clauses",
+            "expected_because": "the student introduced multiple noun phrases needing elaboration (honey, wax, foraging) where a B1 speaker would naturally embed a relative clause",
+            "evidence": "bee wax uh for eating and also um i think for for medicine"
+          },
+          {
+            "structure": "discourse connectors / contrast markers",
+            "expected_because": "the student signals contrast between rural and urban beekeeping but never uses 'whereas,' 'however,' or 'on the other hand,' which are expected at B1 productive level",
+            "evidence": "in my country we have beekeeping but in in the countryside not city"
+          }
+        ],
+        "verdict": "Consistent avoidance of conditionals, relative clauses, and discourse connectors suggests a hard ceiling around A2-B1 boundary, where propositional content is communicated but syntactic packaging remains telegraphic."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 10.4,
+            "s": "neutral",
+            "sc": -0.12
+          },
+          {
+            "t": 27.5,
+            "s": "neutral",
+            "sc": -0.08
+          },
+          {
+            "t": 41.3,
+            "s": "positive",
+            "sc": 0.15
+          },
+          {
+            "t": 55.3,
+            "s": "positive",
+            "sc": 0.3
+          },
+          {
+            "t": 66.5,
+            "s": "positive",
+            "sc": 0.25
+          },
+          {
+            "t": 86.8,
+            "s": "neutral",
+            "sc": 0.1
+          },
+          {
+            "t": 100.1,
+            "s": "neutral",
+            "sc": -0.1
+          },
+          {
+            "t": 120.0,
+            "s": "positive",
+            "sc": 0.2
+          },
+          {
+            "t": 131.4,
+            "s": "neutral",
+            "sc": -0.05
+          }
+        ],
+        "positive_pct": 44,
+        "neutral_pct": 56,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Urban Beekeeping",
+          "City Ecology",
+          "Food Production"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Urban Beekeeping",
+          "City Ecology",
+          "Food Production"
+        ]
+      }
+    },
+    {
+      "label": "session-2_rich",
+      "cefr": {
+        "level": "A2",
+        "confidence": "high",
+        "reasoning": "The student demonstrates A2-level characteristics: simple clause chaining with 'and' and 'because', absence of subordination beyond a single 'that', and consistent auxiliary omission as in 'i not know' and 'is very dark'. While topic-specific vocabulary ('bioluminescence', 'midnight zone', 'adapted', 'predator/prey') shows content knowledge, this lexicon appears retrieved rather than generatively controlled, which is consistent with an A2 learner operating at the upper boundary of their band."
+      },
+      "talk_ratio": {
+        "student_pct": 46.2,
+        "tutor_pct": 53.8,
+        "student_words": 156,
+        "tutor_words": 168,
+        "status": "ok"
+      },
+      "new_words": {
+        "new_count": 53,
+        "total_vocab": 61,
+        "sample": [
+          "adapted",
+          "always",
+          "anglerfish",
+          "animal",
+          "animals",
+          "because",
+          "big",
+          "biolum",
+          "body",
+          "cannot",
+          "concept",
+          "dark"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "it have light on the head",
+          "correction": "it has a light on its head",
+          "type": "grammar",
+          "explanation": "Third-person singular present tense requires 'has' not 'have'; also missing the indefinite article 'a' before 'light' and the possessive determiner 'its' before 'head' ? both are high-frequency A2/B1 targets."
+        },
+        {
+          "error": "i not know this word",
+          "correction": "I don't know this word",
+          "type": "grammar",
+          "explanation": "Negation in English requires the auxiliary 'do/does' ? bare negation without an auxiliary ('not know') is a persistent A1-A2 fossilization that signals incomplete internalization of English auxiliary structure."
+        },
+        {
+          "error": "because there is no sun in very deep water",
+          "correction": "because there is no sunlight in very deep water",
+          "type": "vocab",
+          "explanation": "'Sun' refers to the celestial body; 'sunlight' is the correct collocate when describing light penetration in a scientific context ? this is a precision-of-register issue common at the A2-B1 boundary."
+        }
+      ],
+      "session_summary": "The student practiced vocabulary and concepts related to deep sea biology, animal adaptation, and bioluminescence, drawing on documentary and film references to scaffold their explanations. A standout moment was the spontaneous, accurate definition of 'prey' ? 'the animal that is eaten like food for other animal' ? demonstrating real-time metalinguistic awareness.",
+      "agency": {
+        "score": 7.6,
+        "pct": 55.6,
+        "initiations": 5,
+        "responses": 4,
+        "intents": [
+          "Make connection to prior knowledge",
+          "Ask for clarification",
+          "Guess meaning from context",
+          "Express difficulty"
+        ],
+        "status": "proactive"
+      },
+      "active_recall": {
+        "count": 10,
+        "words": [
+          "about",
+          "food",
+          "have",
+          "know",
+          "like",
+          "that",
+          "they",
+          "think",
+          "very",
+          "word"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {
+        "count": 4,
+        "examples": [
+          "biolum uh no i not know this word animals make light like like a lamp",
+          "the sun the sun cannot reach so is very dark",
+          "pressure like uh the water push",
+          "is is difficult to explain"
+        ],
+        "verdict": "The frequency and variety of self-repairs ? including lexical abandonment, repetition for processing time, and explicit metalinguistic comment ? reveal strong metacognitive awareness and a monitor-active learner who recognizes gaps in real time but lacks the L2 resources to fully resolve them."
+      },
+      "filler_pressure": {
+        "total": 3,
+        "by_topic": {
+          "Deep Sea Biology": 1,
+          "Bioluminescence": 1,
+          "Animal Adaptation": 1
+        },
+        "worst_topic": "Deep Sea Biology"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "relative clauses",
+            "expected_because": "The student repeatedly described nouns with qualifying information (e.g., animals that make light, the zone where there is no sun) but consistently used juxtaposition or parataxis instead of embedding a relative clause",
+            "evidence": "animals make light like like a lamp ? expected: 'animals that produce light'"
+          },
+          {
+            "structure": "passive voice",
+            "expected_because": "The scientific register of the topic (adaptation, predation, light production) strongly invites passives, and the student was clearly attempting to explain biological processes",
+            "evidence": "the animal that is eaten like food for other animal ? the student produced one near-passive but immediately paraphrased it in active terms, suggesting the structure is not yet productive"
+          },
+          {
+            "structure": "hedging / epistemic modality",
+            "expected_because": "A B1+ speaker discussing uncertain or inferred information (e.g., body adaptation, pressure effects) would be expected to use 'might', 'could', 'it seems that', or 'I believe that' systematically",
+            "evidence": "i think their body is uh is different from normal fish they are adapted ? 'I think' appears once but modal verbs like 'might be' or 'could be' are entirely absent"
+          }
+        ],
+        "verdict": "The consistent avoidance of relative clauses, productive passive constructions, and epistemic modal hedging places a clear ceiling at A2-B1, indicating the student's conceptual knowledge substantially outpaces their available grammatical architecture in English."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 11.4,
+            "s": "neutral",
+            "sc": -0.1
+          },
+          {
+            "t": 29.9,
+            "s": "positive",
+            "sc": 0.2
+          },
+          {
+            "t": 45.6,
+            "s": "positive",
+            "sc": 0.3
+          },
+          {
+            "t": 62.4,
+            "s": "neutral",
+            "sc": -0.05
+          },
+          {
+            "t": 78.5,
+            "s": "neutral",
+            "sc": 0.1
+          },
+          {
+            "t": 91.4,
+            "s": "neutral",
+            "sc": -0.08
+          },
+          {
+            "t": 108.9,
+            "s": "positive",
+            "sc": 0.35
+          },
+          {
+            "t": 123.0,
+            "s": "neutral",
+            "sc": -0.05
+          },
+          {
+            "t": 142.7,
+            "s": "neutral",
+            "sc": -0.1
+          }
+        ],
+        "positive_pct": 33,
+        "neutral_pct": 67,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Deep Sea Biology",
+          "Animal Adaptation",
+          "Bioluminescence"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Bioluminescence",
+          "Deep Sea Biology",
+          "Animal Adaptation"
+        ]
+      }
+    },
+    {
+      "label": "session-3_rich",
+      "cefr": {
+        "level": "B1",
+        "confidence": "high",
+        "reasoning": "The student sustains topic-relevant discourse across multiple domains, uses linking language ('so,' 'because,' 'also'), and demonstrates real-world vocabulary like 'fermentation,' 'beneficial,' and 'preserve' ? all consistent with B1 competency. However, recurring failures in past-tense negation ('they not have'), subject-verb agreement with scientific plurals ('bacteria is'), and the complete absence of relative clauses and past perfect constructions confirm a B1 ceiling rather than B2."
+      },
+      "talk_ratio": {
+        "student_pct": 47.3,
+        "tutor_pct": 52.7,
+        "student_words": 192,
+        "tutor_words": 196,
+        "status": "ok"
+      },
+      "new_words": {
+        "new_count": 55,
+        "total_vocab": 70,
+        "sample": [
+          "alcohol",
+          "amazing",
+          "bacteria",
+          "bad",
+          "beer",
+          "beneficial",
+          "biology",
+          "bread",
+          "cabbage",
+          "call",
+          "called",
+          "countries"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "maybe because they not have refrigerator",
+          "correction": "maybe because they did not have refrigerators",
+          "type": "grammar",
+          "explanation": "Missing auxiliary 'did' in past negation and missing plural on countable noun 'refrigerator'; this negation pattern ('not have' instead of 'didn't have') is a persistent B1-level morphosyntactic gap that impedes precision in historical or explanatory discourse."
+        },
+        {
+          "error": "i always think bacteria is bad",
+          "correction": "I always thought bacteria were bad",
+          "type": "grammar",
+          "explanation": "Two errors: (1) present simple used for a past belief ('think' vs 'thought') and (2) lack of plural agreement ('bacteria' is plural, requiring 'were'); correct subject-verb agreement with irregular scientific plurals is a key B2 target."
+        },
+        {
+          "error": "we eat with meat",
+          "correction": "we eat it with meat",
+          "type": "grammar",
+          "explanation": "Missing object pronoun 'it' creates a structurally incomplete clause; while common in L1 pro-drop languages, omitting object pronouns in English is a grammatical error that can cause ambiguity for listeners."
+        }
+      ],
+      "session_summary": "The student practiced discussing fermentation, food preservation, microbiology, and cultural food traditions including yogurt, sauerkraut, and kefir. A standout moment was the unprompted metacognitive reflection 'i never think about the science inside ? now i see that biology is everywhere,' showing genuine conceptual integration.",
+      "agency": {
+        "score": 8.1,
+        "pct": 55.6,
+        "initiations": 5,
+        "responses": 4,
+        "intents": [
+          "Share cultural knowledge",
+          "Ask about vocabulary",
+          "Reason logically",
+          "Express surprise",
+          "Make scientific connection"
+        ],
+        "status": "proactive"
+      },
+      "active_recall": {
+        "count": 19,
+        "words": [
+          "about",
+          "call",
+          "called",
+          "from",
+          "good",
+          "have",
+          "inside",
+          "know",
+          "language",
+          "like",
+          "means",
+          "something",
+          "that",
+          "there",
+          "think",
+          "this",
+          "very",
+          "when",
+          "word"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {
+        "count": 3,
+        "examples": [
+          "bacteria are are good sometimes ? false start with repeated auxiliary before self-continuing",
+          "it is just it is just normal food ? full phrase repetition indicating real-time reformulation",
+          "like when you are sick beneficial it means uh good like it helps you ? mid-sentence pivot to define the word after sensing the listener may not understand"
+        ],
+        "verdict": "The three self-repairs reveal solid metacognitive monitoring ? the student detects communicative risk (unknown vocabulary, false starts) and actively repairs in real time, which is a strong B1-to-B2 transition marker."
+      },
+      "filler_pressure": {
+        "total": 5,
+        "by_topic": {
+          "Microbiology": 3,
+          "Food Preservation": 1,
+          "Cultural Traditions": 1
+        },
+        "worst_topic": "Microbiology"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "relative clauses",
+            "expected_because": "A B1+ speaker discussing science and culture would typically use 'which' or 'that' clauses (e.g., 'a process that preserves food')",
+            "evidence": "fermentation was like uh a way to preserve the food for longer time ? clause reduced to infinitive, relative clause absent"
+          },
+          {
+            "structure": "passive voice",
+            "expected_because": "Scientific and food-process discourse at B2 heavily relies on passive constructions (e.g., 'kefir is produced by fermenting milk')",
+            "evidence": "it is made from milk ? one passive used correctly but no other passive constructions appear despite multiple opportunities in fermentation explanation"
+          },
+          {
+            "structure": "past perfect or narrative sequencing",
+            "expected_because": "When explaining historical context (lack of refrigeration, ancient preservation), a B2 speaker would use 'had been using,' 'had not had,' or 'before refrigeration existed'",
+            "evidence": "maybe because they not have refrigerator so fermentation was like uh a way to preserve the food ? entire historical explanation stays in simple past/present with no temporal layering"
+          }
+        ],
+        "verdict": "The consistent avoidance of relative clauses, passive constructions beyond the simplest form, and past perfect sequencing places a clear ceiling at B1, suggesting the student relies on simplified clause structures to stay within fluency comfort zones."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 14.3,
+            "s": "neutral",
+            "sc": 0.05
+          },
+          {
+            "t": 30.8,
+            "s": "neutral",
+            "sc": 0.0
+          },
+          {
+            "t": 51.7,
+            "s": "neutral",
+            "sc": -0.1
+          },
+          {
+            "t": 70.2,
+            "s": "positive",
+            "sc": 0.2
+          },
+          {
+            "t": 84.0,
+            "s": "neutral",
+            "sc": -0.05
+          },
+          {
+            "t": 102.1,
+            "s": "neutral",
+            "sc": 0.05
+          },
+          {
+            "t": 121.5,
+            "s": "positive",
+            "sc": 0.5
+          },
+          {
+            "t": 142.8,
+            "s": "positive",
+            "sc": 0.4
+          },
+          {
+            "t": 168.6,
+            "s": "positive",
+            "sc": 0.35
+          }
+        ],
+        "positive_pct": 44,
+        "neutral_pct": 56,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Microbiology",
+          "Fermentation",
+          "Cultural Traditions",
+          "Food Preservation"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Microbiology",
+          "Fermentation",
+          "Food Preservation",
+          "Cultural Traditions"
+        ]
+      }
+    },
+    {
+      "label": "session-4_rich",
+      "cefr": {
+        "level": "B1",
+        "confidence": "high",
+        "reasoning": "The student sustains coherent, topic-relevant discourse across several minutes and contributes culturally specific knowledge (Glagolitic script, Cyril and Methodius) with accurate vocabulary, meeting B1 descriptors for maintaining interaction and expressing opinions. However, the absence of subordination, passive constructions, and epistemic hedging, combined with frequent repetition-based disfluencies ('for for business', 'my own my own perspective'), place the ceiling firmly at B1+ rather than B2."
+      },
+      "talk_ratio": {
+        "student_pct": 51.4,
+        "tutor_pct": 48.6,
+        "student_words": 224,
+        "tutor_words": 203,
+        "status": "ok"
+      },
+      "new_words": {
+        "new_count": 84,
+        "total_vocab": 97,
+        "sample": [
+          "absolutely",
+          "across",
+          "after",
+          "allows",
+          "alphabet",
+          "arrows",
+          "becomes",
+          "brain",
+          "business",
+          "by",
+          "byzantine",
+          "can"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "i think i see this in a museum",
+          "correction": "I think I have seen this in a museum / I think I saw this in a museum",
+          "type": "grammar",
+          "explanation": "The student uses simple present 'see' where the context demands either simple past (completed event) or present perfect (past experience with present relevance); this tense conflation is a persistent B1-level gap."
+        },
+        {
+          "error": "the first writing was not for not for poetry or religion but for for business",
+          "correction": "the first writing was not for poetry or religion but for business",
+          "type": "grammar",
+          "explanation": "The doubled preposition phrase 'not for not for' and 'for for' are disfluency-driven repetitions that obscure the contrast structure; mastering 'not X but Y' as a clean contrastive frame is important at B2."
+        },
+        {
+          "error": "what they what they keep in the head",
+          "correction": "what they keep in their heads / what they can hold in their minds",
+          "type": "vocab",
+          "explanation": "The phrase 'keep in the head' uses a literal calque (likely from a Slavic L1 structure) instead of the idiomatic English 'hold in one's head/mind'; using the correct collocation signals B2+ lexical competence."
+        }
+      ],
+      "session_summary": "The student practiced discussing ancient writing systems (cuneiform, hieroglyphics, Glagolitic script) and Slavic cultural history, demonstrating solid content knowledge and genuine intellectual engagement. A standout moment was the spontaneous, accurate contribution about Cyril and Methodius and the Glagolitic alphabet, showing confident use of culturally specific vocabulary.",
+      "agency": {
+        "score": 7.6,
+        "pct": 55.6,
+        "initiations": 5,
+        "responses": 4,
+        "intents": [
+          "Share expertise",
+          "Ask historical question",
+          "Make philosophical observation",
+          "Connect to personal culture"
+        ],
+        "status": "proactive"
+      },
+      "active_recall": {
+        "count": 10,
+        "words": [
+          "about",
+          "country",
+          "have",
+          "many",
+          "people",
+          "that",
+          "think",
+          "this",
+          "what",
+          "without"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {
+        "count": 6,
+        "examples": [
+          "it becomes becomes hard",
+          "it is like like early paper",
+          "what they what they keep in the head",
+          "not for not for poetry",
+          "for for business",
+          "my own my own perspective"
+        ],
+        "verdict": "The repetition-based self-repairs are predominantly hesitation fillers rather than meaning corrections, suggesting the student is monitoring fluency in real time but has not yet developed the pause-and-reformulate strategies typical of B2 speakers."
+      },
+      "filler_pressure": {
+        "total": 5,
+        "by_topic": {
+          "Ancient History": 3,
+          "Cuneiform": 1,
+          "Writing Systems": 1
+        },
+        "worst_topic": "Ancient History"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "passive voice",
+            "expected_because": "Discussing invention and historical development ('cuneiform was developed by...', 'clay tablets were used because...') strongly invites passive constructions, which B2 speakers deploy readily",
+            "evidence": "was it one person or or many people across the time ? the student uses a question frame instead of a passive statement like 'was it developed by one person'"
+          },
+          {
+            "structure": "subordinate adverbial clauses (because/since/given that)",
+            "expected_because": "At B2, speakers routinely embed causal reasoning in subordinate clauses rather than stringing coordinate clauses; the student's explanations are long but paratactic",
+            "evidence": "clay is easy to find and you can write on it when it is wet and then it becomes becomes hard ? four coordinated clauses where 'because clay is easily sourced and hardens after drying' would be expected"
+          },
+          {
+            "structure": "hedged epistemic modality (might have, could have, may well have)",
+            "expected_because": "Speculating about ancient history is a canonical context for modal hedging at B2-C1; the student speculates frequently but without epistemic modals",
+            "evidence": "who invented this writing was it one person or or many people across the time ? no modal hedge such as 'it might have been developed gradually' is attempted"
+          }
+        ],
+        "verdict": "The consistent avoidance of passive voice, subordination, and epistemic modals across a content-rich discussion points to a B1-B2 boundary ceiling, where the student can sustain discourse but has not yet automatized the morphosyntactic complexity expected at solid B2."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 12.7,
+            "s": "neutral",
+            "sc": 0.0
+          },
+          {
+            "t": 34.8,
+            "s": "neutral",
+            "sc": -0.05
+          },
+          {
+            "t": 57.3,
+            "s": "positive",
+            "sc": 0.3
+          },
+          {
+            "t": 78.6,
+            "s": "neutral",
+            "sc": -0.1
+          },
+          {
+            "t": 100.5,
+            "s": "positive",
+            "sc": 0.4
+          },
+          {
+            "t": 127.1,
+            "s": "neutral",
+            "sc": 0.05
+          },
+          {
+            "t": 144.1,
+            "s": "neutral",
+            "sc": 0.1
+          },
+          {
+            "t": 163.4,
+            "s": "neutral",
+            "sc": 0.0
+          },
+          {
+            "t": 187.3,
+            "s": "positive",
+            "sc": 0.55
+          }
+        ],
+        "positive_pct": 33,
+        "neutral_pct": 67,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Slavic Culture",
+          "Writing Systems",
+          "Cuneiform",
+          "Ancient History"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Slavic Culture",
+          "Writing Systems",
+          "Cuneiform",
+          "Ancient History"
+        ]
+      }
+    },
+    {
+      "label": "session-5_rich",
+      "cefr": {
+        "level": "B2",
+        "confidence": "high",
+        "reasoning": "The student handles abstract scientific concepts fluently, deploys domain-specific lexis accurately ('mycelium', 'parasitic', 'preliminary', 'vocabulary acquisition'), and demonstrates critical evaluation of evidence ('a lot of marketing exaggerates the evidence'), all core B2 descriptors. However, the consistent avoidance of passive voice, non-restrictive relative clauses, and concessive subordination ? structures expected to appear spontaneously at C1 ? places a firm ceiling at B2 rather than permitting an upper-band C1 assignment."
+      },
+      "talk_ratio": {
+        "student_pct": 61.8,
+        "tutor_pct": 38.2,
+        "student_words": 248,
+        "tutor_words": 151,
+        "status": "healthy"
+      },
+      "new_words": {
+        "new_count": 120,
+        "total_vocab": 135,
+        "sample": [
+          "accelerated",
+          "acquisition",
+          "actually",
+          "almost",
+          "anemone",
+          "anything",
+          "apparently",
+          "articles",
+          "before",
+          "benefit",
+          "benefits",
+          "break"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "some fungi are parasitic right they take from the host without giving anything",
+          "correction": "Some fungi are parasitic ? they take from the host without giving anything back, right?",
+          "type": "grammar",
+          "explanation": "The discourse marker 'right' is misplaced at the end of a declarative statement used as a confirmation-seeking tag; in natural English it follows the clause it checks, not precedes a new clause. Additionally 'without giving anything' is slightly incomplete ? 'giving anything back' is the idiomatic form in the context of reciprocal relationships."
+        },
+        {
+          "error": "some are what's the word decomposers",
+          "correction": "Some are ? what's the word ? decomposers?",
+          "type": "vocab",
+          "explanation": "While the self-interruption is pragmatically appropriate, the student already possessed the word 'decomposers' and retrieved it immediately, suggesting the hesitation reflects uncertainty about register rather than true lexical gap. At B2+ the student should experiment with more precise terms like 'saprotrophic fungi' when operating in scientific discourse, which they otherwise demonstrate comfort with."
+        },
+        {
+          "error": "i think listening to podcasts accelerated my vocabulary acquisition significantly compared to just studying textbooks",
+          "correction": "Accurate as produced; however, the missing subject pronoun drop at transcript start ('i know more') recurs throughout as consistent non-capitalization and absent sentence boundaries.",
+          "type": "grammar",
+          "explanation": "The entire transcript lacks sentence-initial capitalization and punctuation boundaries, which ? while possibly a transcription artifact ? suggests the student does not yet consistently signal syntactic boundaries in spontaneous speech, a feature that distinguishes B2 from C1 oral fluency in terms of prosodic chunking."
+        }
+      ],
+      "session_summary": "The student practiced discussing mycology, forest ecology, symbiosis, and scientific literacy, demonstrating strong domain-specific vocabulary acquisition. A standout moment was the spontaneous production of 'the research is still preliminary' paired with critical awareness of marketing exaggeration, showing genuine epistemic sophistication.",
+      "agency": {
+        "score": 4.2,
+        "pct": 22.2,
+        "initiations": 2,
+        "responses": 7,
+        "intents": [
+          "Question assumptions",
+          "Make intellectual connection",
+          "Share research",
+          "Discuss learning strategy"
+        ],
+        "status": "developing"
+      },
+      "active_recall": {
+        "count": 17,
+        "words": [
+          "about",
+          "actually",
+          "brain",
+          "called",
+          "fascinating",
+          "from",
+          "just",
+          "know",
+          "like",
+          "more",
+          "other",
+          "right",
+          "share",
+          "that",
+          "they",
+          "think",
+          "thought"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {
+        "count": 3,
+        "examples": [
+          "i found this completely fascinating completely ? signals the student noticed the adverb felt underemphasized and repeated it for rhetorical weight",
+          "symbiosis ? yes i know it ? mid-stream topic retrieval where the student self-supplies a term before it was fully prompted",
+          "some are what's the word decomposers ? lexical retrieval pause followed by immediate self-completion without external scaffolding"
+        ],
+        "verdict": "Three distinct self-repairs reveal strong metacognitive monitoring: the student tracks both lexical precision and rhetorical effect in real time, a hallmark of upper-intermediate to advanced processing."
+      },
+      "filler_pressure": {
+        "total": 4,
+        "by_topic": {
+          "Mycology": 1,
+          "Forest Ecology": 2,
+          "Scientific Research": 1
+        },
+        "worst_topic": "Forest Ecology"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "passive voice in scientific register",
+            "expected_because": "the student repeatedly engages with scientific claims ('the research is still preliminary', 'scientists call it') where passive constructions ('it has been shown that', 'nutrients are transported via') are conventional and expected at B2+ in academic discourse",
+            "evidence": "old trees can feed younger ones some scientists call it the wood wide web"
+          },
+          {
+            "structure": "concessive clauses (although / even though / whilst)",
+            "expected_because": "the student expresses contrast and qualification multiple times, which canonically triggers concessive subordination at B2 level",
+            "evidence": "the mycology community seems genuinely enthusiastic but also rigorous ? uses coordination 'but' rather than 'although the community is enthusiastic, it remains rigorous'"
+          },
+          {
+            "structure": "relative clauses with non-subject relativizer (which/whom)",
+            "expected_because": "when defining symbiosis and describing the network, a B2 speaker is expected to embed relative clauses to compress information",
+            "evidence": "it means two different species that benefit from living together ? uses subject relative 'that' correctly but never attempts object-role or non-restrictive relative clauses such as 'a network through which nutrients flow'"
+          }
+        ],
+        "verdict": "Consistent avoidance of passive constructions, non-restrictive relatives, and concessive subordination suggests the student has hit a B2 productive ceiling where receptive knowledge of complex syntax has not yet converted into spontaneous generative use."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 10.2,
+            "s": "positive",
+            "sc": 0.45
+          },
+          {
+            "t": 31.4,
+            "s": "positive",
+            "sc": 0.7
+          },
+          {
+            "t": 55.8,
+            "s": "positive",
+            "sc": 0.5
+          },
+          {
+            "t": 79.2,
+            "s": "positive",
+            "sc": 0.45
+          },
+          {
+            "t": 100.0,
+            "s": "neutral",
+            "sc": -0.05
+          },
+          {
+            "t": 122.7,
+            "s": "positive",
+            "sc": 0.5
+          },
+          {
+            "t": 140.2,
+            "s": "positive",
+            "sc": 0.35
+          },
+          {
+            "t": 163.6,
+            "s": "positive",
+            "sc": 0.4
+          },
+          {
+            "t": 181.9,
+            "s": "positive",
+            "sc": 0.55
+          }
+        ],
+        "positive_pct": 89,
+        "neutral_pct": 11,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Scientific Research",
+          "Symbiosis",
+          "Forest Ecology",
+          "Mycology"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Forest Ecology",
+          "Scientific Research",
+          "Symbiosis",
+          "Mycology"
+        ]
+      }
+    },
+    {
+      "label": "session-6_rich",
+      "cefr": {
+        "level": "B2",
+        "confidence": "high",
+        "reasoning": "The student sustains coherent, topic-specific discourse across astrophysics and self-reflection with accurate complex sentences and appropriate hedging ('i think science is fundamentally about making unexpected connections'), clearly exceeding B1. However, the consistent reliance on clausal rather than nominal syntax, the absence of inverted or mixed conditionals, and the self-identified struggle with 'well-structured arguments in writing ? with appropriate connectives and formal register' place the output firmly at strong B2 rather than C1."
+      },
+      "talk_ratio": {
+        "student_pct": 65.6,
+        "tutor_pct": 34.4,
+        "student_words": 310,
+        "tutor_words": 154,
+        "status": "healthy"
+      },
+      "new_words": {
+        "new_count": 142,
+        "total_vocab": 167,
+        "sample": [
+          "able",
+          "academic",
+          "after",
+          "alien",
+          "alone",
+          "appeared",
+          "applies",
+          "appropriate",
+          "apps",
+          "arguments",
+          "as",
+          "astrophysical"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "constructing wellstructured arguments in writing",
+          "correction": "constructing well-structured arguments in writing",
+          "type": "grammar",
+          "explanation": "Compound adjectives modifying a noun require a hyphen when used attributively; omitting it is a minor but recurring written-English convention error that will matter in UK academic writing."
+        },
+        {
+          "error": "i think that built my reading fluency actually",
+          "correction": "I think that actually built my reading fluency",
+          "type": "grammar",
+          "explanation": "Placing 'actually' sentence-finally is a discourse marker pattern more common in informal spoken L1 English; in formal or academic spoken registers the adverb should be positioned mid-sentence before the main verb, signalling stronger pragmatic control."
+        },
+        {
+          "error": "i've started keeping a vocabulary journal where i record words in context with example sentences i think it helps with retention more than spaced repetition apps alone",
+          "correction": "I've started keeping a vocabulary journal in which I record words in context with example sentences; I think it helps with retention more than spaced repetition apps alone.",
+          "type": "grammar",
+          "explanation": "The relative clause 'where I record' is semantically acceptable but stylistically weak for a candidate targeting C1/academic register ? 'in which' is preferred in formal writing; additionally, the two independent clauses are run together without punctuation or a cohesive device."
+        }
+      ],
+      "session_summary": "The student practiced discussing neutron stars, magnetars, and pulsars while also reflecting on learning strategies and academic goals; a standout moment was the precise, confident explanation of magnetar field strength ? 'if one appeared roughly the distance to the moon it would disrupt the iron in our blood and pull metal objects off the surface of earth' ? delivered with near-native fluency.",
+      "agency": {
+        "score": 5.3,
+        "pct": 33.3,
+        "initiations": 3,
+        "responses": 6,
+        "intents": [
+          "Demonstrate knowledge",
+          "Reflect on learning",
+          "Make scientific connection",
+          "Discuss goals"
+        ],
+        "status": "developing"
+      },
+      "active_recall": {
+        "count": 10,
+        "words": [
+          "about",
+          "from",
+          "have",
+          "know",
+          "precise",
+          "science",
+          "that",
+          "think",
+          "vocabulary",
+          "where"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {
+        "count": 0,
+        "examples": [],
+        "verdict": "The complete absence of self-repairs across a highly technical monologue suggests either strong pre-planning and topic familiarity or, less likely, reduced monitoring ? but given the consistently accurate output, it most plausibly reflects high metacognitive preparation and confidence with rehearsed domain vocabulary."
+      },
+      "filler_pressure": {
+        "total": 5,
+        "by_topic": {
+          "Astrophysics": 1,
+          "Neutron Stars": 1,
+          "Academic Goals": 2,
+          "Learning Strategies": 1
+        },
+        "worst_topic": "Academic Goals"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "Passive voice with agent",
+            "expected_because": "A speaker at C1 discussing scientific history would naturally use agentive passives (e.g. 'they were initially mistaken by astronomers for alien signals'), but the student produced a truncated agentless passive, suggesting passive construction is used but not yet fully exploited for rhetorical effect",
+            "evidence": "they were initially mistaken for alien signals"
+          },
+          {
+            "structure": "Hypothetical conditionals (Type 2/3 mixed)",
+            "expected_because": "The magnetar scenario is inherently counterfactual and an advanced speaker would likely deploy a mixed or inverted conditional ? 'Were one to appear at roughly the distance to the moon, it would disrupt...' ? but the student used a simple Type 2 conditional with 'if'",
+            "evidence": "if one appeared roughly the distance to the moon it would disrupt the iron in our blood"
+          },
+          {
+            "structure": "Nominalization",
+            "expected_because": "Academic and C1-level discourse on science typically involves nominalizing processes (e.g. 'the collapse of a massive star' or 'the merging of protons and electrons'), which the student consistently avoided in favour of clausal structures",
+            "evidence": "the core becomes so dense that protons and electrons merge into neutrons"
+          }
+        ],
+        "verdict": "The avoidance of agentive passives, inverted conditionals, and nominalization places a visible ceiling at high B2 ? the student commands accurate clausal syntax but has not yet internalized the condensed, noun-heavy grammar that characterizes authentic C1 academic discourse."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 10.3,
+            "s": "positive",
+            "sc": 0.5
+          },
+          {
+            "t": 30.8,
+            "s": "positive",
+            "sc": 0.55
+          },
+          {
+            "t": 56.3,
+            "s": "positive",
+            "sc": 0.4
+          },
+          {
+            "t": 86.0,
+            "s": "neutral",
+            "sc": 0.1
+          },
+          {
+            "t": 110.9,
+            "s": "positive",
+            "sc": 0.4
+          },
+          {
+            "t": 140.7,
+            "s": "positive",
+            "sc": 0.45
+          },
+          {
+            "t": 159.0,
+            "s": "positive",
+            "sc": 0.3
+          },
+          {
+            "t": 182.1,
+            "s": "neutral",
+            "sc": -0.1
+          },
+          {
+            "t": 205.7,
+            "s": "neutral",
+            "sc": 0.05
+          }
+        ],
+        "positive_pct": 67,
+        "neutral_pct": 33,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Neutron Stars",
+          "Academic Goals",
+          "Learning Strategies",
+          "Astrophysics"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Neutron Stars",
+          "Academic Goals",
+          "Learning Strategies",
+          "Astrophysics"
+        ]
+      }
+    },
+    {
+      "label": "session-7_rich",
+      "cefr": {
+        "level": "?",
+        "confidence": "?",
+        "reasoning": ""
+      },
+      "talk_ratio": {
+        "student_pct": 57.6,
+        "tutor_pct": 42.4,
+        "student_words": 238,
+        "tutor_words": 177,
+        "status": "healthy"
+      },
+      "new_words": {
+        "new_count": 119,
+        "total_vocab": 141,
+        "sample": [
+          "acquired",
+          "acquisition",
+          "adds",
+          "almost",
+          "always",
+          "appears",
+          "apprenticeship",
+          "areas",
+          "artisan",
+          "authentic",
+          "channel",
+          "chemical"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [],
+      "session_summary": "Exceptional session demonstrating sophisticated cross-domain thinking. The student connected indigo dyeing chemistry to fermentation, referenced Vygotsky's zone of proximal development, and discussed deliberate practice theory. Vocabulary was advanced and precise throughout.",
+      "agency": {
+        "score": 5.8,
+        "pct": 37.5,
+        "initiations": 3,
+        "responses": 5,
+        "intents": [
+          "Ask analytical question",
+          "Connect concepts across domains",
+          "Reflect on learning strategy",
+          "Share research"
+        ],
+        "status": "developing"
+      },
+      "active_recall": {
+        "count": 10,
+        "words": [
+          "about",
+          "acquisition",
+          "language",
+          "learning",
+          "making",
+          "studying",
+          "that",
+          "understand",
+          "what",
+          "when"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {},
+      "filler_pressure": {
+        "total": 3,
+        "by_topic": {
+          "Japanese Traditional Craft": 2,
+          "Learning Theory": 1
+        },
+        "worst_topic": "Japanese Traditional Craft"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {},
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 12.3,
+            "s": "positive",
+            "sc": 0.45
+          },
+          {
+            "t": 42.1,
+            "s": "positive",
+            "sc": 0.5
+          },
+          {
+            "t": 66.0,
+            "s": "positive",
+            "sc": 0.55
+          },
+          {
+            "t": 89.3,
+            "s": "positive",
+            "sc": 0.45
+          },
+          {
+            "t": 111.8,
+            "s": "neutral",
+            "sc": 0.08
+          },
+          {
+            "t": 137.3,
+            "s": "positive",
+            "sc": 0.4
+          },
+          {
+            "t": 162.8,
+            "s": "neutral",
+            "sc": 0.12
+          },
+          {
+            "t": 192.1,
+            "s": "positive",
+            "sc": 0.55
+          }
+        ],
+        "positive_pct": 75,
+        "neutral_pct": 25,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Japanese Traditional Craft",
+          "Aizome Indigo Dyeing",
+          "Learning Theory",
+          "Skill Acquisition"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Japanese Traditional Craft",
+          "Aizome Indigo Dyeing",
+          "Learning Theory",
+          "Skill Acquisition"
+        ]
+      }
+    },
+    {
+      "label": "session-8_rich",
+      "cefr": {
+        "level": "C1",
+        "confidence": "medium",
+        "reasoning": "The student demonstrates C1-level lexical range ('anthropocentric', 'emergent property', 'collocation', 'metalinguistic awareness', 'idiomatic'), sustained abstract argumentation, and self-aware interlanguage analysis across multiple academic domains. However, the absence of cleft sentences, formal concessives, and perfect-aspect hedging in contexts that strongly license them, combined with the isolated prepositional collocation error, suggests productive grammar is consolidating at high B2 rather than fully established C1."
+      },
+      "talk_ratio": {
+        "student_pct": 69.1,
+        "tutor_pct": 30.9,
+        "student_words": 368,
+        "tutor_words": 163,
+        "status": "healthy"
+      },
+      "new_words": {
+        "new_count": 157,
+        "total_vocab": 177,
+        "sample": [
+          "actual",
+          "align",
+          "alongside",
+          "already",
+          "analytical",
+          "anthropocentric",
+          "as",
+          "astrophysics",
+          "attention",
+          "awareness",
+          "because",
+          "becomes"
+        ],
+        "signal": "strong_growth"
+      },
+      "top_errors": [
+        {
+          "error": "interested about",
+          "correction": "interested in",
+          "type": "vocab",
+          "explanation": "This is a prepositional collocation error the student themselves identifies. 'Interested in' is the fixed English collocation; 'about' is semantically motivated but idiomatically incorrect. Notably, the student demonstrates high metalinguistic awareness by diagnosing the error mechanism accurately."
+        },
+        {
+          "error": "i suspect the distinction matters less than it seems in practice",
+          "correction": "I suspect the distinction matters less than it appears to in practice",
+          "type": "grammar",
+          "explanation": "'It seems' is slightly informal and underspecified here; 'it appears to' or 'it would seem' would be more precise in academic register. Additionally, 'in practice' would typically be set off with a comma in formal written English, though this is a spoken register issue."
+        },
+        {
+          "error": "the cognitive load has decreased substantially",
+          "correction": "Acceptable as-is, but 'my cognitive load has decreased substantially' would be more precise",
+          "type": "grammar",
+          "explanation": "Use of 'the' instead of 'my' creates a slight definiteness mismatch ? the referent is personal and not previously established as a shared noun phrase. This is a subtle but recurring L2 article-choice issue with abstract nouns."
+        }
+      ],
+      "session_summary": "The student practiced discussing AI/NLP philosophy, second language acquisition theory, and metalinguistic awareness across a wide range of academic registers. A standout moment was the self-aware analogy between LLM hallucination and their own L2 production errors: 'i can construct fluent sentences that contain subtle semantic errors because my statistical intuitions about what sounds right in english don't always align with logical truth.'",
+      "agency": {
+        "score": 5.8,
+        "pct": 37.5,
+        "initiations": 3,
+        "responses": 5,
+        "intents": [
+          "Analyse learning trajectory",
+          "Make philosophical argument",
+          "Reflect on progress",
+          "Propose theoretical position"
+        ],
+        "status": "developing"
+      },
+      "active_recall": {
+        "count": 18,
+        "words": [
+          "about",
+          "acquisition",
+          "concept",
+          "english",
+          "language",
+          "more",
+          "practice",
+          "preparation",
+          "research",
+          "specific",
+          "start",
+          "that",
+          "thought",
+          "topics",
+          "what",
+          "when",
+          "with",
+          "without"
+        ],
+        "is_first_session": false
+      },
+      "self_repairs": {
+        "count": 2,
+        "examples": [
+          "i might say 'interested about' instead of 'interested in' because 'about' follows semantic expectations but violates the actual collocation ? the model and i share the same underlying confusion",
+          "i can construct fluent sentences that contain subtle semantic errors because my statistical intuitions about what sounds right in english don't always align with logical truth"
+        ],
+        "verdict": "Both self-repairs are retrospective and analytical rather than mid-utterance corrections, revealing exceptional metacognitive distance from their own interlanguage ? a hallmark of analytically-oriented C1-level learners."
+      },
+      "filler_pressure": {
+        "total": 5,
+        "by_topic": {
+          "Computational Linguistics": 2,
+          "Philosophy of Mind": 1,
+          "Language Acquisition": 2
+        },
+        "worst_topic": "Computational Linguistics"
+      },
+      "code_switching": {
+        "count": 0,
+        "instances": []
+      },
+      "gray_zones": {
+        "avoided": [
+          {
+            "structure": "Cleft sentences",
+            "expected_because": "A C1 speaker discussing philosophy and nuance would typically deploy clefts ('What I find most striking is...', 'It is the definitional framing that matters...') to foreground information rhetorically",
+            "evidence": "i think 'understand' is an anthropocentric concept that becomes less useful as we encounter different kinds of intelligence ? a cleft ('What I would argue is that...') would be expected here"
+          },
+          {
+            "structure": "Hedged epistemic modality with perfect aspect",
+            "expected_because": "Academic discourse at C1+ routinely uses constructions like 'this may have reflected' or 'the models could have been trained to' to hedge claims about states of affairs over time",
+            "evidence": "current models are already useful for processing language tasks ? no perfect-aspect hedging is deployed despite the epistemically cautious context"
+          },
+          {
+            "structure": "Concessive subordination (albeit, notwithstanding, even granting that)",
+            "expected_because": "The student is explicitly engaging with philosophical dichotomies and counterarguments, a context that strongly licenses concessive connectors beyond 'but'",
+            "evidence": "it might be a false dichotomy ? that what we call 'comprehension' in humans might also be an emergent property ? 'albeit one that is...' or 'notwithstanding the intuitive appeal of...' are absent throughout"
+          }
+        ],
+        "verdict": "The consistent avoidance of cleft constructions, perfect-aspect epistemic hedges, and formal concessive subordinators suggests the student's productive grammar ceiling sits at high B2/emergent C1 despite clearly C1-level conceptual fluency and lexical range."
+      },
+      "sentiment_arc": {
+        "data": [
+          {
+            "t": 17.1,
+            "s": "positive",
+            "sc": 0.5
+          },
+          {
+            "t": 53.6,
+            "s": "neutral",
+            "sc": 0.05
+          },
+          {
+            "t": 79.8,
+            "s": "neutral",
+            "sc": 0.03
+          },
+          {
+            "t": 110.5,
+            "s": "neutral",
+            "sc": 0.08
+          },
+          {
+            "t": 150.2,
+            "s": "neutral",
+            "sc": 0.06
+          },
+          {
+            "t": 179.5,
+            "s": "neutral",
+            "sc": 0.1
+          },
+          {
+            "t": 207.4,
+            "s": "positive",
+            "sc": 0.6
+          },
+          {
+            "t": 239.0,
+            "s": "positive",
+            "sc": 0.65
+          }
+        ],
+        "positive_pct": 38,
+        "neutral_pct": 62,
+        "negative_pct": 0,
+        "arc_direction": "consistent",
+        "available": true
+      },
+      "topic_expansion": {
+        "new_topics": [
+          "Language Acquisition",
+          "Computational Linguistics",
+          "AI and NLP",
+          "Philosophy of Mind"
+        ],
+        "recurring_topics": [],
+        "all_topics": [
+          "Language Acquisition",
+          "Computational Linguistics",
+          "AI and NLP",
+          "Philosophy of Mind"
+        ]
+      }
+    }
+  ],
+  "progression": {
+    "labels": [
+      "session-1_rich",
+      "session-2_rich",
+      "session-3_rich",
+      "session-4_rich",
+      "session-5_rich",
+      "session-6_rich",
+      "session-7_rich",
+      "session-8_rich"
+    ],
+    "metrics_table": {
+      "talk_time_pct": [
+        42.8,
+        46.2,
+        47.3,
+        51.4,
+        61.8,
+        65.6,
+        57.6,
+        69.1
+      ],
+      "new_words": [
+        39,
+        53,
+        55,
+        84,
+        120,
+        142,
+        119,
+        157
+      ],
+      "total_vocab": [
+        39,
+        61,
+        70,
+        97,
+        135,
+        167,
+        141,
+        177
+      ],
+      "fillers": [
+        2,
+        3,
+        5,
+        5,
+        4,
+        5,
+        3,
+        5
+      ],
+      "agency_score": [
+        9.8,
+        7.6,
+        8.1,
+        7.6,
+        4.2,
+        5.3,
+        5.8,
+        5.8
+      ],
+      "active_recall": [
+        0,
+        10,
+        19,
+        10,
+        17,
+        10,
+        10,
+        18
+      ],
+      "cefr": [
+        "A2",
+        "A2",
+        "B1",
+        "B1",
+        "B2",
+        "B2",
+        "?",
+        "C1"
+      ]
+    },
+    "signals": [
+      {
+        "name": "Talk time growing",
+        "positive": true
+      },
+      {
+        "name": "Vocabulary expanding",
+        "positive": true
+      },
+      {
+        "name": "Fewer fillers",
+        "positive": false
+      },
+      {
+        "name": "Agency increasing",
+        "positive": false
+      },
+      {
+        "name": "Active recall",
+        "positive": true
+      }
+    ],
+    "positive_count": 3,
+    "total_signals": 5,
+    "verdict": "Mixed signals — improvement in some areas.",
+    "cefr_journey": [
+      "A2",
+      "A2",
+      "B1",
+      "B1",
+      "B2",
+      "B2",
+      "?",
+      "C1"
+    ]
+  },
+  "preset": {
+    "id": "demo_exotic",
+    "name": "Exotic Topics — A2→B1 Journey",
+    "story": "improvement",
+    "badge": "PROGRESSION"
+  }
+}

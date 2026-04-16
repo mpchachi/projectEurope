@@ -10,8 +10,8 @@ venv/
 start.bat
 check_db.bat
 
-# Cache / generated
-cache/
+# Cache / generated (preset caches ARE committed so Railway doesn't re-run analysis)
+# cache/
 
 # Audio files (large binaries)
 *.wav
