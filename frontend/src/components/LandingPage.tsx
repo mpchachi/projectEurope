@@ -155,6 +155,7 @@ export default function LandingPage({ onEnterApp }: { onEnterApp: () => void }) 
   useEffect(() => { setWinH(window.innerHeight); }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const images: HTMLImageElement[] = new Array(TOTAL_FRAMES);
     framesRef.current = images;
     let loaded = 0;
@@ -162,12 +163,15 @@ export default function LandingPage({ onEnterApp }: { onEnterApp: () => void }) 
     let idx = 0;
 
     function loadNext() {
+      if (cancelled) return;
       const end = Math.min(idx + BATCH, TOTAL_FRAMES);
       for (let i = idx; i < end; i++) {
+        if (cancelled) break;
         const pad = String(i + 1).padStart(4, "0");
         const img = new Image();
         img.src = `/frames/frame_${pad}.${EXT}`;
         img.onload = img.onerror = () => {
+          if (cancelled) return;
           loaded++;
           loadedCountRef.current = loaded;
           const pct = Math.round((loaded / TOTAL_FRAMES) * 100);
@@ -181,7 +185,14 @@ export default function LandingPage({ onEnterApp }: { onEnterApp: () => void }) 
     }
 
     loadNext();
-    return () => { framesRef.current = []; };
+    return () => {
+      cancelled = true;
+      // Abort any in-flight image requests
+      for (const img of images) {
+        if (img && !img.complete) img.src = '';
+      }
+      framesRef.current = [];
+    };
   }, []);
 
   useEffect(() => {
