@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fetchConversations, fetchPreset } from './api'
 import Dashboard from './components/Dashboard'
+import LandingPage from './components/LandingPage'
 import type { AnalysisResult, ConversationCard } from './types'
 import './index.css'
 
-type Screen = 'home' | 'import' | 'live' | 'dashboard'
+type Screen = 'landing' | 'home' | 'import' | 'live' | 'dashboard'
 
 const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
   PROGRESSION: { bg: 'rgba(5,150,105,0.08)',  color: '#059669' },
@@ -486,7 +487,7 @@ function NoiseOverlay() {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('home')
+  const [screen, setScreen] = useState<Screen>('landing')
   const [result, setResult] = useState<AnalysisResult | null>(null)
 
   function showDashboard(data: AnalysisResult) { setResult(data); setScreen('dashboard') }
@@ -501,6 +502,7 @@ export default function App() {
         transition={{ duration: 0.12 }}
         style={{ minHeight: '100vh' }}
       >
+        {screen === 'landing'   && <LandingPage  onEnterApp={() => setScreen('home')} />}
         {screen === 'home'      && <HomeScreen   onImport={() => setScreen('import')} onLive={() => setScreen('live')} />}
         {screen === 'import'    && <ImportScreen  onBack={() => setScreen('home')} onSelect={showDashboard} />}
         {screen === 'live'      && <LiveScreen    onBack={() => setScreen('home')} onSelect={showDashboard} />}

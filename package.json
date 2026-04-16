@@ -1,0 +1,6 @@
+{
+  "name": "preply-europe",
+  "scripts": {
+    "dev": "node start-all.js"
+  }
+}
