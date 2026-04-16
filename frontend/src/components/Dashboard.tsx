@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { AnalysisResult, Session } from '../types'
 import { TypewriterEffect, toWords } from './ui/TypewriterEffect'
 import { EncryptedText } from './ui/EncryptedText'
+import { CountUp } from './ui/CountUp'
+import { MetricTooltip } from './ui/MetricTooltip'
+import { RevealRow } from './ui/RevealRow'
 
 // ─── Error Boundary ───────────────────────────────────────────────────────────
 
@@ -318,13 +321,14 @@ function CardHeader({ label, trend, activeIdx, upIsGood = true, onCompare }: {
 
 // ─── PremiumCard ──────────────────────────────────────────────────────────────
 
-function PremiumCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function PremiumCard({ children, style, why }: { children: React.ReactNode; style?: React.CSSProperties; why?: string }) {
   return (
     <motion.div
       className="card-premium"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       style={style}
+      data-why={why}
     >
       {children}
     </motion.div>
@@ -569,7 +573,7 @@ function CommunicationSection({ session, progression, activeSession, onCompareTa
     <Section label="Communication">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-        <PremiumCard>
+        <PremiumCard why="Output hypothesis (Swain, 1985): comprehensible output — not just input — is what drives real acquisition. Speaking time is the most honest proxy for that.">
           <CardHeader label="Talk Ratio" trend={mt?.talk_time_pct} activeIdx={activeSession} upIsGood={true} onCompare={onCompareTalkRatio} />
           {session.talk_ratio ? (
             <TalkRatio
@@ -580,7 +584,7 @@ function CommunicationSection({ session, progression, activeSession, onCompareTa
           ) : <p style={{ fontSize: 13, color: T.muted }}>No data</p>}
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Conversational initiative predicts long-term retention better than accuracy scores (Lantolf, 2000). A student who leads the conversation owns the language.">
           <CardHeader label="Conversational Agency" trend={mt?.agency_score} activeIdx={activeSession} upIsGood={true} onCompare={onCompareAgency} />
           {session.agency
             ? <AgencyGauge data={session.agency} />
@@ -605,17 +609,17 @@ function PatternsSection({ session, progression, activeSession, onCompareFillers
     <Section label="Session Patterns">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
 
-        <PremiumCard>
+        <PremiumCard why="Self-repair correlates with metalinguistic awareness — the internal monitor catching errors before they fossilise. First described by Levelt (1983) as a key marker of implicit knowledge forming.">
           <div style={T.metricLabel}>Self-Repair Rate</div>
           <SelfRepairs data={session.self_repairs} />
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Disfluencies don't distribute randomly — they cluster around domains where cognitive load exceeds automaticity. The topic with the most fillers is the student's exact next frontier.">
           <CardHeader label="Filler Pressure" trend={mt?.fillers} activeIdx={activeSession} upIsGood={false} onCompare={onCompareFillers} />
           <FillerPressure data={session.filler_pressure} />
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Derived from Deepgram sentiment per utterance. Confidence isn't flat across a session — it peaks and dips with cognitive load. Knowing when the dip happened is more useful than knowing the average.">
           <div style={T.metricLabel}>Confidence Arc</div>
           <SentimentArc data={session.sentiment_arc} />
         </PremiumCard>
@@ -643,16 +647,18 @@ function VocabularySection({ session, progression, activeSession, onCompareVocab
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16, marginTop: 16 }}>
 
-        <PremiumCard>
+        <PremiumCard why="Measures productive vocabulary — words the student generates spontaneously, not just recognises. The distinction between receptive and productive lexicon is the most undertracked metric in language learning.">
           <CardHeader label="Total Vocabulary" trend={mt?.total_vocab} activeIdx={activeSession} upIsGood={true} onCompare={onCompareVocab} />
-          <div style={{ fontSize: 72, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 8 }}>
-            {session.new_words?.total_vocab ?? 0}
-          </div>
+          <CountUp
+            value={session.new_words?.total_vocab ?? 0}
+            delay={300}
+            style={{ display: 'block', fontSize: 72, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 8 }}
+          />
           <div style={{ fontSize: 11, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 12 }}>
             Cumulative words
           </div>
           <div style={{ fontSize: 13, color: T.gray }}>
-            +{session.new_words?.new_count ?? 0} new this session
+            +<CountUp value={session.new_words?.new_count ?? 0} delay={350} /> new this session
           </div>
         </PremiumCard>
 
@@ -693,9 +699,11 @@ function DiagnosticSection({ session }: { session: Session }) {
         <PremiumCard>
           <div style={T.metricLabel}>Code-Switching</div>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 72, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.04em' }}>
-              {switchCount}
-            </div>
+            <CountUp
+              value={switchCount}
+              delay={200}
+              style={{ display: 'block', fontSize: 72, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.04em' }}
+            />
             <div style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.09em', marginTop: 7 }}>
               Language switches
             </div>
@@ -843,13 +851,27 @@ function SessionView({ session, progression, activeSession, onCompareTalkRatio, 
 }) {
   return (
     <div>
-      <NewWordsHero         session={session} />
-      <OverviewSection      session={session} progression={progression} />
-      <SessionArtifacts     session={session} />
-      <CommunicationSection session={session} progression={progression} activeSession={activeSession} onCompareTalkRatio={onCompareTalkRatio} onCompareAgency={onCompareAgency} />
-      <PatternsSection      session={session} progression={progression} activeSession={activeSession} onCompareFillers={onCompareFillers} />
-      <VocabularySection    session={session} progression={progression} activeSession={activeSession} onCompareVocab={onCompareVocab} onCompareRecall={onCompareRecall} />
-      <DiagnosticSection    session={session} />
+      <RevealRow delay={0}>
+        <NewWordsHero session={session} />
+      </RevealRow>
+      <RevealRow delay={0.05}>
+        <OverviewSection session={session} progression={progression} />
+      </RevealRow>
+      <RevealRow delay={0.1}>
+        <SessionArtifacts session={session} />
+      </RevealRow>
+      <RevealRow delay={0.1}>
+        <CommunicationSection session={session} progression={progression} activeSession={activeSession} onCompareTalkRatio={onCompareTalkRatio} onCompareAgency={onCompareAgency} />
+      </RevealRow>
+      <RevealRow delay={0.15}>
+        <PatternsSection session={session} progression={progression} activeSession={activeSession} onCompareFillers={onCompareFillers} />
+      </RevealRow>
+      <RevealRow delay={0.2}>
+        <VocabularySection session={session} progression={progression} activeSession={activeSession} onCompareVocab={onCompareVocab} onCompareRecall={onCompareRecall} />
+      </RevealRow>
+      <RevealRow delay={0.25}>
+        <DiagnosticSection session={session} />
+      </RevealRow>
     </div>
   )
 }
@@ -900,6 +922,7 @@ function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => 
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F6' }}>
+      <MetricTooltip />
       <StickyHeader data={data} sessions={sessions} activeSession={activeSession} setActiveSession={setActiveSession} onBack={onBack} />
 
       <div style={{ textAlign: 'center', padding: '36px 32px 28px' }}>

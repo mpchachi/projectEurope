@@ -86,6 +86,24 @@ PRESETS = {
         "story": "cefr_range",
         "badge": "CEFR DEMO",
     },
+    "demo_exotic": {
+        "name": "Exotic Topics — A2\u2192B1 Journey",
+        "description": "8-session progression: beekeeping \u2192 astrophysics \u2192 computational linguistics",
+        "mode": "json",
+        "sources": [
+            "demo_student/session-1_rich.json",
+            "demo_student/session-2_rich.json",
+            "demo_student/session-3_rich.json",
+            "demo_student/session-4_rich.json",
+            "demo_student/session-5_rich.json",
+            "demo_student/session-6_rich.json",
+            "demo_student/session-7_rich.json",
+            "demo_student/session-8_rich.json",
+        ],
+        "student_id": "demo-exotic",
+        "story": "improvement",
+        "badge": "PROGRESSION",
+    },
     # ── Add real recorded sessions here once you have them ───────────────────
     # "session_live_001": {
     #     "name": "Live Session — 2026-04-16",

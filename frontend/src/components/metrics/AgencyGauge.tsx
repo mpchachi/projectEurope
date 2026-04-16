@@ -1,4 +1,5 @@
 import type { Agency } from '../../types'
+import { CountUp } from '../ui/CountUp'
 
 const statusNarrative: Record<string, string> = {
   reactive:   'Following the tutor\'s lead throughout the session',
@@ -13,12 +14,16 @@ export default function AgencyGauge({ data }: { data: Agency }) {
     <div>
       {/* Hero % */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{
-          fontSize: 80, fontWeight: 800, color: '#FF4D7E',
-          lineHeight: 1, letterSpacing: '-0.04em',
-        }}>
-          {data.pct.toFixed(0)}%
-        </div>
+        <CountUp
+          value={Math.round(data.pct)}
+          suffix="%"
+          delay={400}
+          style={{
+            display: 'block',
+            fontSize: 80, fontWeight: 800, color: '#FF4D7E',
+            lineHeight: 1, letterSpacing: '-0.04em',
+          }}
+        />
         <div style={{
           fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase',
           letterSpacing: '0.09em', marginTop: 8,

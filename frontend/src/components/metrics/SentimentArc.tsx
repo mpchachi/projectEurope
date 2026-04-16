@@ -48,32 +48,38 @@ export default function SentimentArc({ data }: { data: SentimentArcType }) {
       {/* Clean line chart */}
       <ReactECharts option={option} style={{ height: 90 }} />
 
-      {/* Inline stats */}
+      {/* Inline stats — only render buckets that are actually non-zero */}
       <div style={{ display: 'flex', gap: 24, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 16 }}>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
-            {data.positive_pct}%
+        {data.positive_pct > 0 && (
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+              {data.positive_pct}%
+            </div>
+            <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
+              Confident
+            </div>
           </div>
-          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
-            Confident
+        )}
+        {data.neutral_pct > 0 && (
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+              {data.neutral_pct}%
+            </div>
+            <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
+              Neutral
+            </div>
           </div>
-        </div>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
-            {data.neutral_pct}%
+        )}
+        {data.negative_pct > 0 && (
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+              {data.negative_pct}%
+            </div>
+            <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
+              Pressure
+            </div>
           </div>
-          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
-            Neutral
-          </div>
-        </div>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
-            {data.negative_pct}%
-          </div>
-          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
-            Pressure
-          </div>
-        </div>
+        )}
       </div>
 
       <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 12, letterSpacing: '0.02em' }}>
