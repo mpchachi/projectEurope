@@ -12,27 +12,45 @@ body {
 /* ─── Premium card ─────────────────────────────────────────────────────────── */
 
 .card-premium {
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
   border-radius: 20px;
-  border: 1px solid #e5e5e5;
+  border: none;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.04);
+    0 8px 24px rgba(0, 0, 0, 0.06);
   position: relative;
   padding: 28px;
+  transition: box-shadow 0.22s ease;
 }
 
+/* Gradient outer border — shows as 1px ring around card */
+.card-premium::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 21px;
+  background: linear-gradient(
+    160deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.12) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.22s ease;
+}
+
+/* Inner sheen + top highlight */
 .card-premium::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 20px;
   background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(255, 255, 255, 0)   40%,
-    rgba(0, 0, 0, 0.04)      100%
+    120deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 40%
   );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   pointer-events: none;
   z-index: 1;
 }
@@ -40,6 +58,20 @@ body {
 .card-premium > * {
   position: relative;
   z-index: 2;
+}
+
+.card-premium:hover {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.09);
+}
+
+.card-premium:hover::before {
+  background: linear-gradient(
+    160deg,
+    rgba(0, 0, 0, 0.09) 0%,
+    rgba(0, 0, 0, 0.16) 100%
+  );
 }
 
 /* ─── Spinner ──────────────────────────────────────────────────────────────── */

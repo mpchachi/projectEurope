@@ -2,6 +2,8 @@ import { useState, useEffect, Component } from 'react'
 import type { ReactNode, ErrorInfo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { AnalysisResult, Session } from '../types'
+import { TypewriterEffect, toWords } from './ui/TypewriterEffect'
+import { EncryptedText } from './ui/EncryptedText'
 
 // ─── Error Boundary ───────────────────────────────────────────────────────────
 
@@ -23,8 +25,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+import NewWordsHero   from './NewWordsHero'
+import WordsStuck     from './WordsStuck'
+import SessionArtifacts from './SessionArtifacts'
 import TalkRatio      from './metrics/TalkRatio'
-import NewWords       from './metrics/NewWords'
 import TopErrors      from './metrics/TopErrors'
 import AgencyGauge    from './metrics/AgencyGauge'
 import SentimentArc   from './metrics/SentimentArc'
@@ -475,13 +479,19 @@ function OverviewSection({ session, progression }: {
                 </div>
               )}
               <p style={{ fontSize: 14, color: T.ink, lineHeight: 1.6 }}>
-                {verdict || (improving
-                  ? 'Student is making solid progress across key metrics.'
-                  : 'Mixed signals — some areas need attention.')}
+                <TypewriterEffect
+                  words={toWords(verdict || (improving
+                    ? 'Student is making solid progress across key metrics.'
+                    : 'Mixed signals — some areas need attention.'))}
+                  typingSpeed={34}
+                />
               </p>
               {negSignals.length > 0 && (
                 <p style={{ fontSize: 12, color: T.gray, marginTop: 6, lineHeight: 1.5 }}>
-                  Watch: {negSignals.slice(0, 2).join(', ')}
+                  <TypewriterEffect
+                    words={toWords(`Next focus: ${negSignals.slice(0, 2).join(', ')}.`)}
+                    typingSpeed={40}
+                  />
                 </p>
               )}
             </div>
@@ -627,11 +637,23 @@ function VocabularySection({ session, progression, activeSession, onCompareVocab
   const mt = progression?.metrics_table
   return (
     <Section label="Vocabulary">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16 }}>
+
+      {/* Words that stuck — animated carousel of top vocab */}
+      <WordsStuck session={session} />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16, marginTop: 16 }}>
 
         <PremiumCard>
-          <CardHeader label="New Words" trend={mt?.total_vocab} activeIdx={activeSession} upIsGood={true} onCompare={onCompareVocab} />
-          <NewWords data={session.new_words} />
+          <CardHeader label="Total Vocabulary" trend={mt?.total_vocab} activeIdx={activeSession} upIsGood={true} onCompare={onCompareVocab} />
+          <div style={{ fontSize: 72, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 8 }}>
+            {session.new_words?.total_vocab ?? 0}
+          </div>
+          <div style={{ fontSize: 11, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 12 }}>
+            Cumulative words
+          </div>
+          <div style={{ fontSize: 13, color: T.gray }}>
+            +{session.new_words?.new_count ?? 0} new this session
+          </div>
         </PremiumCard>
 
         <PremiumCard>
@@ -821,7 +843,9 @@ function SessionView({ session, progression, activeSession, onCompareTalkRatio, 
 }) {
   return (
     <div>
+      <NewWordsHero         session={session} />
       <OverviewSection      session={session} progression={progression} />
+      <SessionArtifacts     session={session} />
       <CommunicationSection session={session} progression={progression} activeSession={activeSession} onCompareTalkRatio={onCompareTalkRatio} onCompareAgency={onCompareAgency} />
       <PatternsSection      session={session} progression={progression} activeSession={activeSession} onCompareFillers={onCompareFillers} />
       <VocabularySection    session={session} progression={progression} activeSession={activeSession} onCompareVocab={onCompareVocab} onCompareRecall={onCompareRecall} />
@@ -877,7 +901,20 @@ function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F6' }}>
       <StickyHeader data={data} sessions={sessions} activeSession={activeSession} setActiveSession={setActiveSession} onBack={onBack} />
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 32px 80px' }}>
+
+      <div style={{ textAlign: 'center', padding: '36px 32px 28px' }}>
+        <EncryptedText
+          text="Decoding session signals"
+          startDelayMs={500}
+          revealDelayMs={95}
+          scrambleSpeed={38}
+          style={{ fontSize: 44, fontWeight: 600, letterSpacing: '0.05em' }}
+          encryptedStyle={{ color: '#9CA3AF' }}
+          revealedStyle={{ color: '#1F2937' }}
+        />
+      </div>
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px 80px' }}>
         <AnimatePresence mode="wait">
           {sessions[activeSession] ? (
             <motion.div key={activeSession} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
