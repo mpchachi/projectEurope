@@ -28,6 +28,8 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+import CEFRProgressCard from './CEFRProgressCard'
+import Timeline         from './Timeline'
 import NewWordsHero   from './NewWordsHero'
 import WordsStuck     from './WordsStuck'
 import SessionArtifacts from './SessionArtifacts'
@@ -35,14 +37,12 @@ import TalkRatio      from './metrics/TalkRatio'
 import TopErrors      from './metrics/TopErrors'
 import AgencyGauge    from './metrics/AgencyGauge'
 import SentimentArc   from './metrics/SentimentArc'
-import GrayZones      from './metrics/GrayZones'
+import GrayZones, { DEFAULT_ZONES as GRAY_ZONES_TEMPLATE, type GrammarZone } from './metrics/GrayZones'
 import FillerPressure from './metrics/FillerPressure'
 import TopicExpansion from './metrics/TopicExpansion'
 import SelfRepairs    from './metrics/SelfRepairs'
 import ActiveRecall   from './metrics/ActiveRecall'
 
-const CEFR_RANK: Record<string, number> = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4, C2: 5 }
-const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
 const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
   PROGRESSION: { bg: 'rgba(5,150,105,0.08)',  color: '#059669' },
@@ -346,214 +346,36 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   )
 }
 
-// ─── CEFR minimal track ───────────────────────────────────────────────────────
-
-function CefrTrack({ session, progression }: {
-  session: Session
-  progression: NonNullable<AnalysisResult['progression']> | null
-}) {
-  const currentLevel = session.cefr?.level ?? 'A1'
-  const currentRank  = CEFR_RANK[currentLevel] ?? 0
-  const targetFill   = (currentRank + 1) / 6 * 100
-
-  const journey    = progression?.cefr_journey ?? []
-  const startLevel = journey.length >= 2 ? journey[0] : null
-  const startRank  = startLevel && startLevel !== currentLevel ? (CEFR_RANK[startLevel] ?? null) : null
-
-  const [fill, setFill] = useState(0)
-  useEffect(() => {
-    const t = setTimeout(() => setFill(targetFill), 100)
-    return () => clearTimeout(t)
-  }, [targetFill])
-
-  return (
-    <div style={{ marginTop: 24 }}>
-      <div style={{ position: 'relative', height: 4, background: '#F0F0F0', borderRadius: 2, marginBottom: 10 }}>
-        <div style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0,
-          width: `${fill}%`, background: T.ink, borderRadius: 2,
-          transition: 'width 1.1s cubic-bezier(0.4,0,0.2,1)',
-        }} />
-        <div style={{
-          position: 'absolute',
-          left: `${Math.min(98, fill)}%`,
-          top: '50%', transform: 'translate(-50%, -50%)',
-          width: 10, height: 10, borderRadius: '50%',
-          background: T.accent, border: '2px solid white',
-          boxShadow: '0 0 0 2px rgba(255,77,126,0.2)',
-          transition: 'left 1.1s cubic-bezier(0.4,0,0.2,1)',
-        }} />
-        {startRank !== null && (
-          <div style={{
-            position: 'absolute',
-            left: `${startRank / 6 * 100}%`,
-            top: '50%', transform: 'translate(-50%, -50%)',
-            width: 7, height: 7, borderRadius: '50%',
-            background: '#D1D5DB', border: '2px solid white',
-          }} />
-        )}
-      </div>
-      <div style={{ display: 'flex' }}>
-        {CEFR_LEVELS.map(lv => (
-          <div key={lv} style={{
-            flex: 1, textAlign: 'center',
-            fontSize: 10, fontWeight: lv === currentLevel ? 700 : 400,
-            color: lv === currentLevel ? T.ink : T.muted,
-            letterSpacing: '0.04em',
-          }}>
-            {lv}
-          </div>
-        ))}
-      </div>
-      {startLevel && startLevel !== currentLevel && (
-        <div style={{ marginTop: 8, fontSize: 11, color: T.muted }}>
-          Journey: {startLevel} → {currentLevel}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ─── Section 1: Overview ──────────────────────────────────────────────────────
 
 function OverviewSection({ session, progression }: {
   session: Session
   progression: NonNullable<AnalysisResult['progression']> | null
 }) {
-  const [expanded, setExpanded] = useState(false)
-  const currentLevel = session.cefr?.level ?? '—'
-  const confidence   = session.cefr?.confidence
-
-  const good = progression?.positive_count ?? 0
-  const tot  = progression?.total_signals ?? 1
-  const improving = progression ? good >= Math.ceil(tot * 0.6) : null
-  const verdict = progression?.verdict ?? session.cefr?.reasoning ?? ''
-  const negSignals = (progression?.signals ?? []).filter(s => !s.positive).map(s => s.name)
+  const positive  = (progression?.signals ?? []).filter(s => s.positive).map(s => s.name)
+  const negative  = (progression?.signals ?? []).filter(s => !s.positive).map(s => s.name)
+  const good      = progression?.positive_count ?? 0
+  const tot       = Math.max(progression?.total_signals ?? 1, 1)
+  const ratio     = good / tot
+  const status    = ratio >= 0.6 ? 'progressing' : ratio >= 0.4 ? 'plateauing' : 'declining'
+  const conf      = session.cefr?.confidence ?? ''
+  const safeConf  = (['high', 'medium', 'low'] as const).find(c => c === conf) ?? 'medium'
 
   return (
     <Section label="Session Overview">
       <PremiumCard>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: '0 40px' }}>
-
-          {/* Left: CEFR */}
-          <div>
-            <div style={T.metricLabel}>CEFR Level</div>
-
-            <div style={{ fontSize: 96, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.05em', marginBottom: 10 }}>
-              {currentLevel}
-            </div>
-
-            {confidence && (
-              <span style={{
-                display: 'inline-block', fontSize: 11, fontWeight: 600,
-                color: '#059669', background: 'rgba(5,150,105,0.08)',
-                borderRadius: 4, padding: '3px 10px', letterSpacing: '0.03em',
-              }}>
-                {confidence} confidence
-              </span>
-            )}
-
-            {session.cefr?.reasoning && (
-              <p style={{ fontSize: 13, color: T.gray, lineHeight: 1.55, marginTop: 10, maxWidth: 300 }}>
-                {session.cefr.reasoning}
-              </p>
-            )}
-
-            <CefrTrack session={session} progression={progression} />
-          </div>
-
-          {/* Vertical rule */}
-          <div style={{ background: '#EBEBEB' }} />
-
-          {/* Right: Signals + Insight + Summary */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-            {/* Insight */}
-            <div>
-              <div style={T.metricLabel}>Session Insight</div>
-              {improving !== null && (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                  textTransform: 'uppercase', marginBottom: 8,
-                  color: improving ? '#059669' : '#B45309',
-                }}>
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: improving ? '#059669' : '#FBBF24' }} />
-                  {improving ? 'Progressing' : 'Plateau risk'}
-                </div>
-              )}
-              <p style={{ fontSize: 14, color: T.ink, lineHeight: 1.6 }}>
-                <TypewriterEffect
-                  words={toWords(verdict || (improving
-                    ? 'Student is making solid progress across key metrics.'
-                    : 'Mixed signals — some areas need attention.'))}
-                  typingSpeed={34}
-                />
-              </p>
-              {negSignals.length > 0 && (
-                <p style={{ fontSize: 12, color: T.gray, marginTop: 6, lineHeight: 1.5 }}>
-                  <TypewriterEffect
-                    words={toWords(`Next focus: ${negSignals.slice(0, 2).join(', ')}.`)}
-                    typingSpeed={40}
-                  />
-                </p>
-              )}
-            </div>
-
-            {/* Signals */}
-            {progression && (
-              <div>
-                <div style={T.metricLabel}>Progression Signals</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 10 }}>
-                  <span style={{ fontSize: 36, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.03em' }}>
-                    {progression.positive_count}
-                  </span>
-                  <span style={{ fontSize: 18, color: '#D1D5DB' }}>/{progression.total_signals}</span>
-                  <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>positive</span>
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  {progression.signals.map(s => (
-                    <span key={s.name} style={{
-                      fontSize: 11, padding: '3px 8px', borderRadius: 3, fontWeight: 500,
-                      ...(s.positive
-                        ? { background: 'rgba(5,150,105,0.07)',  color: '#059669' }
-                        : { background: 'rgba(239,68,68,0.06)',  color: '#DC2626' })
-                    }}>
-                      {s.positive ? '✓' : '✗'} {s.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Summary */}
-            {session.session_summary && (
-              <div>
-                <div style={T.metricLabel}>Session Summary</div>
-                <div style={{ overflow: 'hidden', maxHeight: expanded ? 600 : 66, transition: 'max-height 0.3s ease' }}>
-                  <p style={{
-                    fontSize: 13, color: '#4B5563', lineHeight: 1.65,
-                    display: !expanded ? '-webkit-box' : undefined,
-                    WebkitLineClamp: !expanded ? 3 : undefined,
-                    WebkitBoxOrient: !expanded ? 'vertical' : undefined,
-                    overflow: !expanded ? 'hidden' : undefined,
-                  }}>
-                    {session.session_summary}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setExpanded(e => !e)}
-                  style={{ marginTop: 6, fontSize: 11, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                  onMouseEnter={e => (e.currentTarget.style.color = T.ink)}
-                  onMouseLeave={e => (e.currentTarget.style.color = T.muted)}
-                >
-                  {expanded ? 'Collapse ↑' : 'Expand ↓'}
-                </button>
-              </div>
-            )}
-
-          </div>
-        </div>
+        <CEFRProgressCard
+          level={session.cefr?.level}
+          confidence={safeConf}
+          description={session.cefr?.reasoning}
+          positiveSignals={positive}
+          negativeSignals={negative}
+          sessionSummary={session.session_summary}
+          progressionStatus={status}
+          nextFocus={negative[0]}
+          signalsScore={progression?.positive_count ?? 0}
+          signalsTotal={progression?.total_signals ?? 0}
+        />
       </PremiumCard>
     </Section>
   )
@@ -577,9 +399,8 @@ function CommunicationSection({ session, progression, activeSession, onCompareTa
           <CardHeader label="Talk Ratio" trend={mt?.talk_time_pct} activeIdx={activeSession} upIsGood={true} onCompare={onCompareTalkRatio} />
           {session.talk_ratio ? (
             <TalkRatio
-              studentPercent={session.talk_ratio.student_pct}
-              tutorPercent={session.talk_ratio.tutor_pct}
-              silencePercent={Math.max(0, 100 - session.talk_ratio.student_pct - session.talk_ratio.tutor_pct)}
+              studentPercent={Math.round(session.talk_ratio.student_pct)}
+              tutorPercent={Math.round(session.talk_ratio.tutor_pct)}
             />
           ) : <p style={{ fontSize: 13, color: T.muted }}>No data</p>}
         </PremiumCard>
@@ -594,6 +415,128 @@ function CommunicationSection({ session, progression, activeSession, onCompareTa
       </div>
     </Section>
   )
+}
+
+// ─── Sentiment adapter: SentimentArcType → new organic terrain props ─────────
+
+function adaptSentimentData(arc: Session['sentiment_arc']): {
+  data?: { minute: number; confidence: number }[]
+  peakMinute?: number; peakLabel?: string
+  dipMinute?: number;  dipLabel?: string
+  totalMinutes?: number
+} {
+  if (!arc?.available || !arc.data.length) return {}
+
+  const pts = arc.data.map((p, i) => ({
+    minute: parseFloat(((p.t ?? i * 2) / 60).toFixed(1)),
+    confidence: p.s === 'positive' ? 0.78 : p.s === 'neutral' ? 0.50 : 0.22,
+  }))
+
+  let peakIdx = 0, dipIdx = 0
+  pts.forEach((p, i) => {
+    if (p.confidence > pts[peakIdx].confidence) peakIdx = i
+    if (p.confidence < pts[dipIdx].confidence)  dipIdx  = i
+  })
+
+  const totalMinutes = Math.max(...pts.map(p => p.minute)) || 1
+  const dir = arc.arc_direction
+  const peakLabel = dir === 'warming' ? 'Confidence building'
+    : dir === 'consistent' ? 'Sustained focus'
+    : 'Pressure easing off'
+
+  return {
+    data: pts,
+    peakMinute: pts[peakIdx].minute,
+    peakLabel,
+    dipMinute:  pts[dipIdx].minute,
+    dipLabel:   'Cognitive load',
+    totalMinutes,
+  }
+}
+
+// ─── Gray Zones adapter: overlay real avoided data onto the full template ─────
+//
+// Strategy: start from DEFAULT_ZONES (12-zone B1 taxonomy with owned/emerging/
+// avoided defaults), then mark any structure the LLM flagged as "avoided" with
+// its real sessionsAvoided count. Unknown avoided structures are appended.
+// This ensures ownedCount is always meaningful, not always 0.
+
+function adaptGrayZones(gz: Session['gray_zones']): GrammarZone[] | undefined {
+  if (!gz?.avoided?.length) return undefined   // pure defaults — let component handle it
+
+  const realAvoided = gz.avoided                // { structure, expected_because, evidence }[]
+
+  // Build a lookup: normalized name → index in template
+  const templateMap = new Map(
+    GRAY_ZONES_TEMPLATE.map((z, i) => [z.name.toLowerCase(), i])
+  )
+
+  // Clone template so we can mutate
+  const result: GrammarZone[] = GRAY_ZONES_TEMPLATE.map(z => ({ ...z }))
+  const seen = new Set<number>()
+
+  realAvoided.forEach(({ structure }) => {
+    const key = structure.toLowerCase()
+    const idx = templateMap.get(key)
+    if (idx !== undefined) {
+      result[idx] = { name: result[idx].name, status: 'avoided' }
+      seen.add(idx)
+    } else {
+      // Structure not in template — append it
+      result.push({ name: structure, status: 'avoided' })
+    }
+  })
+
+  return result
+}
+
+// ─── Topic Expansion adapter: TopicExpansionType → network props ─────────────
+
+type TopicNode = { id: string; label: string; type: 'known' | 'bridge' | 'expanded'; strength: number }
+type TopicConn = { from: string; to: string; weight: number }
+
+function adaptTopicExpansion(te: Session['topic_expansion'], session: Session): {
+  nodes?: TopicNode[]; connections?: TopicConn[]
+  expansionScore?: number; newTopicsCount?: number
+  dominantDomain?: string; sessionLabel?: string
+} {
+  const recurring = (te?.recurring_topics ?? []).slice(0, 3)
+  const newTopics = (te?.new_topics ?? []).slice(0, 6)
+  if (!recurring.length && !newTopics.length) return {}
+
+  const IDS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+  const nodes: TopicNode[] = []
+
+  recurring.forEach((label, i) =>
+    nodes.push({ id: IDS[i], label, type: 'known', strength: 0.88 - i * 0.04 }))
+
+  const bridgeCount = Math.min(2, Math.ceil(newTopics.length / 3))
+  newTopics.slice(0, bridgeCount).forEach((label, i) =>
+    nodes.push({ id: IDS[recurring.length + i], label, type: 'bridge', strength: 0.68 - i * 0.06 }))
+
+  newTopics.slice(bridgeCount).forEach((label, i) =>
+    nodes.push({ id: IDS[recurring.length + bridgeCount + i], label, type: 'expanded', strength: 0.54 - i * 0.05 }))
+
+  const knownIds    = nodes.filter(n => n.type === 'known').map(n => n.id)
+  const bridgeIds   = nodes.filter(n => n.type === 'bridge').map(n => n.id)
+  const expandedIds = nodes.filter(n => n.type === 'expanded').map(n => n.id)
+
+  const connections: TopicConn[] = []
+  knownIds.slice(0, 3).forEach((k, ki) =>
+    bridgeIds.forEach((b, bi) => connections.push({ from: k, to: b, weight: 0.80 - ki * 0.05 - bi * 0.03 })))
+  bridgeIds.forEach((b, i) =>
+    expandedIds.slice(i * 2, i * 2 + 2).forEach((e, ei) =>
+      connections.push({ from: b, to: e, weight: 0.62 - i * 0.06 - ei * 0.08 })))
+
+  const total = recurring.length + newTopics.length
+  return {
+    nodes,
+    connections,
+    expansionScore:  total > 0 ? Math.round((newTopics.length / total) * 100) : 0,
+    newTopicsCount:  te?.new_topics?.length ?? 0,
+    dominantDomain:  newTopics[0] ?? 'Language acquisition',
+    sessionLabel:    `${session.label} · ${session.cefr?.level ?? ''} trajectory`,
+  }
 }
 
 // ─── Section 3: Session Patterns ─────────────────────────────────────────────
@@ -616,12 +559,16 @@ function PatternsSection({ session, progression, activeSession, onCompareFillers
 
         <PremiumCard why="Disfluencies don't distribute randomly — they cluster around domains where cognitive load exceeds automaticity. The topic with the most fillers is the student's exact next frontier.">
           <CardHeader label="Filler Pressure" trend={mt?.fillers} activeIdx={activeSession} upIsGood={false} onCompare={onCompareFillers} />
-          <FillerPressure data={session.filler_pressure} />
+          <FillerPressure
+            topics={Object.entries(session.filler_pressure?.by_topic ?? {}).map(([topic, fillers]) => ({ topic, fillers }))}
+          />
         </PremiumCard>
 
         <PremiumCard why="Derived from Deepgram sentiment per utterance. Confidence isn't flat across a session — it peaks and dips with cognitive load. Knowing when the dip happened is more useful than knowing the average.">
           <div style={T.metricLabel}>Confidence Arc</div>
-          <SentimentArc data={session.sentiment_arc} />
+          {session.sentiment_arc?.available
+            ? <SentimentArc {...adaptSentimentData(session.sentiment_arc)} />
+            : <p style={{ fontSize: 13, color: T.muted }}>No sentiment data</p>}
         </PremiumCard>
 
       </div>
@@ -645,7 +592,7 @@ function VocabularySection({ session, progression, activeSession, onCompareVocab
       {/* Words that stuck — animated carousel of top vocab */}
       <WordsStuck session={session} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16, marginTop: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
 
         <PremiumCard why="Measures productive vocabulary — words the student generates spontaneously, not just recognises. The distinction between receptive and productive lexicon is the most undertracked metric in language learning.">
           <CardHeader label="Total Vocabulary" trend={mt?.total_vocab} activeIdx={activeSession} upIsGood={true} onCompare={onCompareVocab} />
@@ -667,12 +614,12 @@ function VocabularySection({ session, progression, activeSession, onCompareVocab
           <ActiveRecall data={session.active_recall} />
         </PremiumCard>
 
-        <PremiumCard>
-          <div style={T.metricLabel}>Topic Expansion</div>
-          <TopicExpansion data={session.topic_expansion} />
-        </PremiumCard>
-
       </div>
+
+      <PremiumCard style={{ marginTop: 16 }} why="Vocabulary doesn't grow linearly — it expands in clusters, jumping from known anchors through bridge concepts into new frontier territory. This network maps that topology for each session.">
+        <div style={T.metricLabel}>Topic Expansion</div>
+        <TopicExpansion {...adaptTopicExpansion(session.topic_expansion, session)} />
+      </PremiumCard>
     </Section>
   )
 }
@@ -691,9 +638,9 @@ function DiagnosticSection({ session }: { session: Session }) {
           <TopErrors data={session.top_errors} />
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Grammar structures the student systematically avoids — not because they don't know them, but because their brain hasn't automated them yet. The empty sectors are the real curriculum.">
           <div style={T.metricLabel}>Gray Zones</div>
-          <GrayZones data={session.gray_zones} />
+          <GrayZones zones={adaptGrayZones(session.gray_zones)} />
         </PremiumCard>
 
         <PremiumCard>
@@ -938,6 +885,13 @@ function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => 
       </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px 80px' }}>
+        {data.progression && sessions.length > 1 && (
+          <Timeline
+            progression={data.progression}
+            activeSession={activeSession}
+            onSelectSession={setActiveSession}
+          />
+        )}
         <AnimatePresence mode="wait">
           {sessions[activeSession] ? (
             <motion.div key={activeSession} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
