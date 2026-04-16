@@ -41,11 +41,7 @@ export default function NewWordsHero({ session }: { session: Session }) {
   const signal = data.signal ? formatSignal(data.signal) : null
 
   return (
-    <div style={{
-      background: '#F9F9FB',
-      border: '1px solid #E6E6E6',
-      borderRadius: 16,
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)',
+    <div className="card-premium" style={{
       padding: '44px 48px',
       marginBottom: 32,
     }}>

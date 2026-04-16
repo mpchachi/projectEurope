@@ -78,14 +78,19 @@ function ArtifactCard({ artifact, index }: { artifact: Artifact; index: number }
   return (
     <DraggableCard delay={index * 0.06} style={{ width: 196 }}>
       <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E5E5E5',
+        background: 'linear-gradient(180deg, #ffffff 0%, #fafafa 100%)',
+        border: 'none',
         borderRadius: 12,
         padding: '18px 20px 16px',
         height: 168,
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)',
+        boxShadow: [
+          '0 1px 2px rgba(0,0,0,0.04)',
+          '0 6px 20px rgba(0,0,0,0.06)',
+          'inset 0 0 0 1px rgba(0,0,0,0.08)',
+          'inset 0 1px 0 rgba(255,255,255,0.8)',
+        ].join(', '),
         userSelect: 'none',
         WebkitUserSelect: 'none',
       }}>
