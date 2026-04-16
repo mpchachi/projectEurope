@@ -1,0 +1,8 @@
+@echo off
+rem Copy this file to start.bat and fill in your real values
+
+set DEEPGRAM_API_KEY=your_deepgram_api_key_here
+set ANTHROPIC_API_KEY=your_anthropic_api_key_here
+set DATABASE_URL=postgresql://user:password@host:port/dbname?sslmode=require
+
+uvicorn api:app --reload --port 8000

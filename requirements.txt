@@ -1,0 +1,6 @@
+fastapi==0.135.2
+uvicorn==0.42.0
+anthropic==0.95.0
+deepgram-sdk==6.1.1
+psycopg2-binary==2.9.11
+python-multipart==0.0.20

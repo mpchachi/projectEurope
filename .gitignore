@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# Secrets / credentials (never commit — copy from *.example)
+start.bat
+check_db.bat
+
+# Cache / generated
+cache/
+
+# Audio files (large binaries)
+*.wav
+*.mp3
+*.m4a
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Misc
+.claude/
+api.txt
+*.docx
+implementation_plan.md.resolved
