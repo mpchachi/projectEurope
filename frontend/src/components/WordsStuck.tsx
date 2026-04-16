@@ -132,7 +132,11 @@ export default function WordsStuck({ session }: { session: Session }) {
   }
 
   return (
-    <div className="card-premium" style={{ marginBottom: 16 }}>
+    <div
+      className="card-premium"
+      style={{ marginBottom: 16 }}
+      data-why="Measures productive vocabulary — words the student generates spontaneously, not just recognises. The distinction between receptive and productive lexicon is the most undertracked metric in language learning."
+    >
 
       {/* Header row */}
       <div style={{

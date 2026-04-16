@@ -1,6 +1,7 @@
 import type { Session } from '../types'
 import { FlipWords } from './ui/FlipWords'
 import { TypewriterEffect, toWords } from './ui/TypewriterEffect'
+import { CountUp } from './ui/CountUp'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,7 +73,7 @@ export default function NewWordsHero({ session }: { session: Session }) {
             textShadow: '0 0 40px rgba(255, 77, 126, 0.22)',
             marginBottom: 16,
           }}>
-            {count}
+            <CountUp value={count} delay={300} />
           </div>
 
           {signal && (

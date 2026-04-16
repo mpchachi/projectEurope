@@ -1,4 +1,5 @@
 import type { SelfRepairs as SelfRepairsType } from '../../types'
+import { CountUp } from '../ui/CountUp'
 
 export default function SelfRepairs({ data }: { data: SelfRepairsType }) {
   if (!data?.count && data?.count !== 0) {
@@ -13,7 +14,7 @@ export default function SelfRepairs({ data }: { data: SelfRepairsType }) {
           fontSize: 72, fontWeight: 800, color: '#111111',
           lineHeight: 1, letterSpacing: '-0.04em',
         }}>
-          {data.count}
+          <CountUp value={data.count} delay={200} />
         </div>
         <div style={{
           fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase',

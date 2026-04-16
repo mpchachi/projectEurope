@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { AnalysisResult, Session } from '../types'
 import { TypewriterEffect, toWords } from './ui/TypewriterEffect'
 import { EncryptedText } from './ui/EncryptedText'
+import { CountUp } from './ui/CountUp'
+import { RevealRow } from './ui/RevealRow'
+import { MetricTooltip } from './ui/MetricTooltip'
 
 // ─── Error Boundary ───────────────────────────────────────────────────────────
 
@@ -68,13 +71,14 @@ const T = {
 
 // ─── PremiumCard ──────────────────────────────────────────────────────────────
 
-function PremiumCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function PremiumCard({ children, style, why }: { children: React.ReactNode; style?: React.CSSProperties; why?: string }) {
   return (
     <motion.div
       className="card-premium"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       style={style}
+      data-why={why}
     >
       {children}
     </motion.div>
@@ -252,7 +256,7 @@ function OverviewSection({ session, progression }: {
                 <div style={T.metricLabel}>Progression Signals</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 10 }}>
                   <span style={{ fontSize: 36, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.03em' }}>
-                    {progression.positive_count}
+                    <CountUp value={progression.positive_count} delay={0} />
                   </span>
                   <span style={{ fontSize: 18, color: '#D1D5DB' }}>/{progression.total_signals}</span>
                   <span style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>positive</span>
@@ -312,7 +316,7 @@ function CommunicationSection({ session }: { session: Session }) {
     <Section label="Communication">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-        <PremiumCard>
+        <PremiumCard why="Output hypothesis (Swain, 1985): comprehensible output — not just input — is what drives real acquisition. Speaking time is the most honest proxy for that.">
           <div style={T.metricLabel}>Talk Ratio</div>
           {session.talk_ratio ? (
             <TalkRatio
@@ -323,7 +327,7 @@ function CommunicationSection({ session }: { session: Session }) {
           ) : <p style={{ fontSize: 13, color: T.muted }}>No data</p>}
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Conversational initiative predicts long-term retention better than accuracy scores (Lantolf, 2000). A student who leads the conversation owns the language.">
           <div style={T.metricLabel}>Conversational Agency</div>
           {session.agency
             ? <AgencyGauge data={session.agency} />
@@ -342,17 +346,17 @@ function PatternsSection({ session }: { session: Session }) {
     <Section label="Session Patterns">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
 
-        <PremiumCard>
+        <PremiumCard why="Self-repair correlates with metalinguistic awareness — the internal monitor catching errors before they fossilise. First described by Levelt (1983) as a key marker of implicit knowledge forming.">
           <div style={T.metricLabel}>Self-Repair Rate</div>
           <SelfRepairs data={session.self_repairs} />
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Disfluencies don't distribute randomly — they cluster around domains where cognitive load exceeds automaticity. The topic with the most fillers is the student's exact next frontier.">
           <div style={T.metricLabel}>Filler Pressure</div>
           <FillerPressure data={session.filler_pressure} />
         </PremiumCard>
 
-        <PremiumCard>
+        <PremiumCard why="Derived from Deepgram sentiment per utterance. Confidence isn't flat across a session — it peaks and dips with cognitive load. Knowing when the dip happened is more useful than knowing the average.">
           <div style={T.metricLabel}>Confidence Arc</div>
           <SentimentArc data={session.sentiment_arc} />
         </PremiumCard>
@@ -412,7 +416,7 @@ function DiagnosticSection({ session }: { session: Session }) {
           <div style={T.metricLabel}>Code-Switching</div>
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 72, fontWeight: 800, color: T.ink, lineHeight: 1, letterSpacing: '-0.04em' }}>
-              {switchCount}
+              <CountUp value={switchCount} delay={0} />
             </div>
             <div style={{ fontSize: 10, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.09em', marginTop: 7 }}>
               Language switches
@@ -522,12 +526,24 @@ function SessionView({ session, progression }: {
 }) {
   return (
     <div>
-      <NewWordsHero         session={session} />
-      <OverviewSection      session={session} progression={progression} />
-      <CommunicationSection session={session} />
-      <PatternsSection      session={session} />
-      <VocabularySection    session={session} />
-      <DiagnosticSection    session={session} />
+      <RevealRow delay={0}>
+        <NewWordsHero session={session} />
+      </RevealRow>
+      <RevealRow delay={0.1}>
+        <OverviewSection session={session} progression={progression} />
+      </RevealRow>
+      <RevealRow delay={0.15}>
+        <CommunicationSection session={session} />
+      </RevealRow>
+      <RevealRow delay={0.2}>
+        <PatternsSection session={session} />
+      </RevealRow>
+      <RevealRow delay={0.25}>
+        <VocabularySection session={session} />
+      </RevealRow>
+      <RevealRow delay={0.3}>
+        <DiagnosticSection session={session} />
+      </RevealRow>
     </div>
   )
 }
@@ -570,6 +586,7 @@ function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => 
           )}
         </AnimatePresence>
       </div>
+      <MetricTooltip />
     </div>
   )
 }

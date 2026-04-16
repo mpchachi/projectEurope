@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CountUp } from '../ui/CountUp'
 
 interface Props {
   studentPercent?: number
@@ -32,7 +33,7 @@ export default function TalkRatio({
           fontSize: 80, fontWeight: 800, color: '#111111',
           lineHeight: 1, letterSpacing: '-0.04em',
         }}>
-          {Math.round(studentPercent)}%
+          <CountUp value={Math.round(studentPercent)} suffix="%" delay={0} />
         </div>
         <div style={{
           fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase',

@@ -1,4 +1,5 @@
 import type { FillerPressure as FillerPressureType } from '../../types'
+import { CountUp } from '../ui/CountUp'
 
 export default function FillerPressure({ data }: { data: FillerPressureType }) {
   const entries = Object.entries(data.by_topic ?? {})
@@ -17,7 +18,7 @@ export default function FillerPressure({ data }: { data: FillerPressureType }) {
           fontSize: 72, fontWeight: 800, color: '#111111',
           lineHeight: 1, letterSpacing: '-0.04em',
         }}>
-          {data.total}
+          <CountUp value={data.total} delay={100} />
         </div>
         <div style={{
           fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase',
