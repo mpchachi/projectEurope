@@ -42,10 +42,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CACHE_DIR = Path("cache")
+BASE_DIR = Path(__file__).parent
+CACHE_DIR = BASE_DIR / "cache"
 CACHE_DIR.mkdir(exist_ok=True)
 
-RECORDINGS_DIR = Path("recordings")
+RECORDINGS_DIR = BASE_DIR / "recordings"
 RECORDINGS_DIR.mkdir(exist_ok=True)
 
 # Serve the React SPA at /
