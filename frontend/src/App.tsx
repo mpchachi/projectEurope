@@ -8,74 +8,70 @@ import './index.css'
 type Screen = 'home' | 'import' | 'live' | 'dashboard'
 
 const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
-  PROGRESSION: { bg: 'rgba(52,211,153,0.12)',  color: '#059669' },
-  PLATEAU:     { bg: 'rgba(251,191,36,0.15)',   color: '#D97706' },
-  'CEFR DEMO': { bg: 'rgba(139,92,246,0.1)',    color: '#7C3AED' },
-  LIVE:        { bg: 'rgba(59,130,246,0.1)',    color: '#2563EB' },
+  PROGRESSION: { bg: 'rgba(5,150,105,0.08)',  color: '#059669' },
+  PLATEAU:     { bg: 'rgba(251,191,36,0.10)', color: '#B45309' },
+  'CEFR DEMO': { bg: 'rgba(99,102,241,0.08)', color: '#4F46E5' },
+  LIVE:        { bg: 'rgba(55,65,81,0.08)',   color: '#374151' },
+}
+
+const S = {
+  ink:   '#111111',
+  gray:  '#6B7280',
+  muted: '#9CA3AF',
+  border:'#EBEBEB',
 }
 
 // ─── Home ─────────────────────────────────────────────────────────────────────
 
 function HomeScreen({ onImport, onLive }: { onImport: () => void; onLive: () => void }) {
   return (
-    <div className="min-h-screen bg-[#F3F3F4] flex flex-col items-center justify-center px-6">
+    <div style={{ minHeight: '100vh', background: '#F5F5F6', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 40px' }}>
       <motion.div
-        initial={{ opacity: 0, y: -16 }}
+        initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-12 text-center"
+        style={{ marginBottom: 40, textAlign: 'center' }}
       >
-        <div className="flex items-center justify-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FE79AB] flex items-center justify-center shadow-sm">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: S.ink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="14" height="14" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <span className="text-[#121114] text-xl font-bold tracking-tight">Language Coach</span>
+          <span style={{ fontSize: 17, fontWeight: 800, color: S.ink, letterSpacing: '-0.02em' }}>Language Coach</span>
         </div>
-        <p className="text-[#6F6F78] text-sm">12-metric post-session analytics · Deepgram + Claude</p>
+        <p style={{ fontSize: 12, color: S.muted, letterSpacing: '0.04em' }}>
+          12-metric post-session analytics · Deepgram + Claude
+        </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
-        <motion.button
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.08 }}
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onImport}
-          className="rounded-2xl bg-white border border-[#D9D9DE] p-6 text-left cursor-pointer transition-all group"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors"
-            style={{ background: 'rgba(254,121,171,0.1)' }}>
-            <svg className="w-5 h-5 text-[#FE79AB]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-            </svg>
-          </div>
-          <h2 className="text-[#121114] font-semibold text-base mb-1">Import Conversation</h2>
-          <p className="text-[#6F6F78] text-xs leading-relaxed">Analyze pre-recorded sessions and track student progression over time</p>
-        </motion.button>
-
-        <motion.button
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.12 }}
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onLive}
-          className="rounded-2xl bg-white border border-[#D9D9DE] p-6 text-left cursor-pointer transition-all group"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors"
-            style={{ background: 'rgba(95,199,194,0.1)' }}>
-            <svg className="w-5 h-5 text-[#5FC7C2]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <circle cx={12} cy={12} r={3} fill="currentColor" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14" />
-            </svg>
-          </div>
-          <h2 className="text-[#121114] font-semibold text-base mb-1">Live Demo</h2>
-          <p className="text-[#6F6F78] text-xs leading-relaxed">Record a session in real-time and get instant analysis when it ends</p>
-        </motion.button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, width: '100%', maxWidth: 560 }}>
+        {[
+          {
+            label: 'Import Conversation',
+            desc: 'Analyze pre-recorded sessions and track progression over time',
+            onClick: onImport,
+          },
+          {
+            label: 'Live Demo',
+            desc: 'Record a session in real-time and get instant analysis when it ends',
+            onClick: onLive,
+          },
+        ].map((item, i) => (
+          <motion.button
+            key={item.label}
+            className="card-premium"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06 }}
+            onClick={item.onClick}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.99 }}
+            style={{ textAlign: 'left', border: 'none', cursor: 'pointer' }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 700, color: S.ink, marginBottom: 6 }}>{item.label}</div>
+            <div style={{ fontSize: 12, color: S.muted, lineHeight: 1.5 }}>{item.desc}</div>
+          </motion.button>
+        ))}
       </div>
     </div>
   )
@@ -84,9 +80,9 @@ function HomeScreen({ onImport, onLive }: { onImport: () => void; onLive: () => 
 // ─── Import ───────────────────────────────────────────────────────────────────
 
 function ImportScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (data: AnalysisResult) => void }) {
-  const [cards, setCards]   = useState<ConversationCard[] | null>(null)
+  const [cards, setCards]     = useState<ConversationCard[] | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
-  const [error, setError]   = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
 
   useEffect(() => {
     fetchConversations().then(setCards).catch(() => setError('Could not load conversations'))
@@ -94,72 +90,110 @@ function ImportScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (dat
 
   async function handleSelect(id: string) {
     setLoading(id); setError(null)
-    try {
-      onSelect(await fetchPreset(id))
-    } catch {
-      setError('Analysis failed — is the backend running?')
-      setLoading(null)
-    }
+    try { onSelect(await fetchPreset(id)) }
+    catch { setError('Analysis failed — is the backend running?'); setLoading(null) }
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F3F4] px-6 py-8">
-      <div className="max-w-2xl mx-auto">
-        <button onClick={onBack} className="text-[#6F6F78] hover:text-[#121114] text-sm mb-8 flex items-center gap-1 transition-colors">
+    <div style={{ minHeight: '100vh', background: '#F5F5F6', padding: '40px' }}>
+      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+        <button
+          onClick={onBack}
+          style={{ fontSize: 12, color: S.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 4 }}
+          onMouseEnter={e => (e.currentTarget.style.color = S.ink)}
+          onMouseLeave={e => (e.currentTarget.style.color = S.muted)}
+        >
           ← Back
         </button>
 
-        <h1 className="text-[#121114] text-2xl font-bold mb-1">Import Conversation</h1>
-        <p className="text-[#6F6F78] text-sm mb-8">Select a session to analyze</p>
+        <div style={{ marginBottom: 36 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: S.ink, letterSpacing: '-0.03em', marginBottom: 6 }}>
+            Import Conversation
+          </h1>
+          <p style={{ fontSize: 13, color: S.muted }}>Select a session to analyze</p>
+        </div>
 
         {error && (
-          <div className="rounded-xl p-4 text-sm mb-6"
-            style={{ background: 'rgba(239,68,68,0.07)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.15)' }}>
+          <div style={{ borderRadius: 4, padding: '10px 14px', fontSize: 13, marginBottom: 20, background: 'rgba(239,68,68,0.05)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.12)' }}>
             {error}
           </div>
         )}
 
         {!cards ? (
-          <div className="flex items-center justify-center h-48 text-[#6F6F78]">Loading…</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, color: S.muted, fontSize: 13 }}>Loading…</div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {cards.map((c, i) => {
               const bs = BADGE_STYLE[c.badge] ?? BADGE_STYLE.PROGRESSION
               const isLoading = loading === c.id
               return (
                 <motion.button
                   key={c.id}
-                  initial={{ opacity: 0, y: 12 }}
+                  className="card-premium"
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.07 }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.995 }}
                   onClick={() => handleSelect(c.id)}
                   disabled={!!loading}
-                  className="text-left rounded-2xl bg-white border border-[#D9D9DE] p-5 cursor-pointer transition-all duration-200 disabled:opacity-60"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                  style={{
+                    width: '100%', textAlign: 'left',
+                    cursor: 'pointer',
+                    opacity: loading && !isLoading ? 0.4 : 1,
+                    transition: 'opacity 0.15s',
+                  }}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[#121114] font-semibold text-sm">{c.name}</span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-md font-medium"
-                          style={{ background: bs.bg, color: bs.color }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+
+                    {/* Index */}
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, color: '#D1D5DB',
+                      fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em',
+                      flexShrink: 0, width: 20,
+                    }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: S.ink, letterSpacing: '-0.01em' }}>
+                          {c.name}
+                        </span>
+                        <span style={{
+                          fontSize: 10, padding: '2px 8px', borderRadius: 3,
+                          fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+                          background: bs.bg, color: bs.color, flexShrink: 0,
+                        }}>
                           {c.badge}
                         </span>
                       </div>
-                      <p className="text-[#6F6F78] text-xs">{c.description}</p>
-                      <p className="text-[#6F6F78] text-xs mt-1">{c.sessions} sessions</p>
+                      <p style={{ fontSize: 13, color: S.gray, margin: 0, lineHeight: 1.4 }}>{c.description}</p>
+                      <p style={{ fontSize: 11, color: S.muted, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                        {c.sessions} sessions
+                      </p>
                     </div>
-                    <div className="shrink-0 text-[#6F6F78] text-sm mt-1">
-                      {isLoading
-                        ? <span className="animate-spin inline-block w-4 h-4 border-2 border-[#FE79AB] border-t-transparent rounded-full" />
-                        : '→'}
+
+                    {/* Arrow / spinner */}
+                    <div style={{ flexShrink: 0, color: S.muted }}>
+                      {isLoading ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                          <span style={{
+                            display: 'inline-block', width: 14, height: 14,
+                            border: '1.5px solid #D1D5DB', borderTopColor: S.ink,
+                            borderRadius: '50%', animation: 'spin 0.7s linear infinite',
+                          }} />
+                          <span style={{ fontSize: 11, color: S.muted }}>~20s</span>
+                        </div>
+                      ) : (
+                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      )}
                     </div>
+
                   </div>
-                  {isLoading && (
-                    <div className="mt-3 text-xs text-[#FE79AB] animate-pulse">Analyzing… this takes ~20s</div>
-                  )}
                 </motion.button>
               )
             })}
@@ -178,56 +212,63 @@ function LiveScreen({ onBack }: { onBack: () => void }) {
   const [step, setStep] = useState(0)
 
   return (
-    <div className="min-h-screen bg-[#F3F3F4] px-6 py-8">
-      <div className="max-w-md mx-auto">
-        <button onClick={onBack} className="text-[#6F6F78] hover:text-[#121114] text-sm mb-8 flex items-center gap-1 transition-colors">
+    <div style={{ minHeight: '100vh', background: '#F5F5F6', padding: '40px' }}>
+      <div style={{ maxWidth: 440, margin: '0 auto' }}>
+        <button
+          onClick={onBack}
+          style={{ fontSize: 12, color: S.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 4 }}
+          onMouseEnter={e => (e.currentTarget.style.color = S.ink)}
+          onMouseLeave={e => (e.currentTarget.style.color = S.muted)}
+        >
           ← Back
         </button>
 
-        <h1 className="text-[#121114] text-2xl font-bold mb-1">Live Demo</h1>
-        <p className="text-[#6F6F78] text-sm mb-10">Record a session and get instant analysis</p>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: S.ink, letterSpacing: '-0.03em', marginBottom: 6 }}>Live Demo</h1>
+        <p style={{ fontSize: 13, color: S.muted, marginBottom: 36 }}>Record a session and get instant analysis</p>
 
-        <div className="flex flex-col gap-3 mb-10">
+        <div style={{ border: '1px solid #EBEBEB', borderRadius: 6, overflow: 'hidden', marginBottom: 20 }}>
           {STEPS.map((s, i) => (
-            <motion.div
-              key={s}
-              className="flex items-center gap-4 p-4 rounded-xl border transition-all duration-200"
-              style={i < step
-                ? { background: 'rgba(52,211,153,0.07)', borderColor: 'rgba(52,211,153,0.3)' }
-                : i === step
-                ? { background: 'rgba(254,121,171,0.07)', borderColor: 'rgba(254,121,171,0.3)' }
-                : { background: '#FFFFFF', borderColor: '#D9D9DE' }
-              }
-            >
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                style={i < step
-                  ? { background: '#34D399', color: '#FFFFFF' }
+            <div key={s} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+              borderBottom: i < STEPS.length - 1 ? '1px solid #F3F4F6' : 'none',
+              background: i === step ? '#FAFAFA' : '#FFFFFF',
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10, fontWeight: 700, flexShrink: 0,
+                ...(i < step
+                  ? { background: S.ink, color: '#FFFFFF' }
                   : i === step
-                  ? { border: '2px solid #FE79AB', color: '#FE79AB' }
-                  : { border: '1px solid #D9D9DE', color: '#6F6F78' }
-                }
-              >
+                  ? { border: '1.5px solid #FF4D7E', color: '#FF4D7E' }
+                  : { border: '1px solid #E5E7EB', color: '#D1D5DB' })
+              }}>
                 {i < step ? '✓' : i + 1}
               </div>
-              <span className="text-sm font-medium" style={{ color: i <= step ? '#121114' : '#6F6F78' }}>{s}</span>
+              <span style={{ fontSize: 13, fontWeight: i <= step ? 600 : 400, color: i <= step ? S.ink : S.muted }}>
+                {s}
+              </span>
               {i === step && (
                 <motion.span
                   animate={{ opacity: [1, 0.3, 1] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="ml-auto text-xs text-[#FE79AB]"
-                >●</motion.span>
+                  style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: '#FF4D7E', flexShrink: 0 }}
+                />
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
 
         <button
           onClick={() => setStep(s => Math.min(s + 1, STEPS.length - 1))}
-          className="w-full py-3 rounded-xl font-semibold text-sm text-white transition-all active:scale-95"
-          style={{ background: '#FE79AB' }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#e06898')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#FE79AB')}
+          style={{
+            width: '100%', padding: '12px', borderRadius: 4,
+            fontWeight: 700, fontSize: 13, color: '#FFFFFF',
+            background: S.ink, border: 'none', cursor: 'pointer',
+            transition: 'background 0.12s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#374151')}
+          onMouseLeave={e => (e.currentTarget.style.background = S.ink)}
         >
           {step === 0 ? 'Start Recording' : step === STEPS.length - 1 ? 'View Results' : 'Next step (demo)'}
         </button>
@@ -244,30 +285,20 @@ export default function App() {
 
   function showDashboard(data: AnalysisResult) { setResult(data); setScreen('dashboard') }
 
-  const pageKey = screen === 'dashboard' ? 'dashboard' : screen
-
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
-        key={pageKey}
+        key={screen === 'dashboard' ? 'dashboard' : screen}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
+        transition={{ duration: 0.12 }}
         style={{ minHeight: '100vh' }}
       >
-        {screen === 'home' && (
-          <HomeScreen onImport={() => setScreen('import')} onLive={() => setScreen('live')} />
-        )}
-        {screen === 'import' && (
-          <ImportScreen onBack={() => setScreen('home')} onSelect={showDashboard} />
-        )}
-        {screen === 'live' && (
-          <LiveScreen onBack={() => setScreen('home')} />
-        )}
-        {screen === 'dashboard' && result && (
-          <Dashboard data={result} onBack={() => setScreen('import')} />
-        )}
+        {screen === 'home'      && <HomeScreen   onImport={() => setScreen('import')} onLive={() => setScreen('live')} />}
+        {screen === 'import'    && <ImportScreen  onBack={() => setScreen('home')} onSelect={showDashboard} />}
+        {screen === 'live'      && <LiveScreen    onBack={() => setScreen('home')} />}
+        {screen === 'dashboard' && result && <Dashboard data={result} onBack={() => setScreen('import')} />}
       </motion.div>
     </AnimatePresence>
   )

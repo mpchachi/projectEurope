@@ -2,17 +2,15 @@ import ReactECharts from 'echarts-for-react'
 import type { SentimentArc as SentimentArcType } from '../../types'
 
 const directionLabel: Record<string, string> = {
-  warming:    '↑ Confidence building through session',
-  cooling:    '↓ Pressure increasing toward end',
-  consistent: '→ Consistent emotional tone',
+  warming:    'Confidence building through the session',
+  cooling:    'Pressure increasing toward the end',
+  consistent: 'Consistent emotional tone throughout',
 }
 
 export default function SentimentArc({ data }: { data: SentimentArcType }) {
   if (!data.available || !data.data.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#6F6F78] text-sm">
-        No sentiment data available
-      </div>
+      <p style={{ fontSize: 13, color: '#9CA3AF' }}>No sentiment data available</p>
     )
   }
 
@@ -22,60 +20,63 @@ export default function SentimentArc({ data }: { data: SentimentArcType }) {
 
   const option = {
     backgroundColor: 'transparent',
-    grid: { left: 0, right: 0, top: 8, bottom: 0 },
+    grid: { left: 0, right: 0, top: 8, bottom: 8, containLabel: false },
     xAxis: { type: 'category', show: false },
-    yAxis: { type: 'value', min: -1.4, max: 1.4, show: false },
+    yAxis: { type: 'value', min: -1.5, max: 1.5, show: false },
     series: [
       {
         type: 'line',
         data: points,
-        smooth: 0.65,
+        smooth: 0.6,
         symbol: 'none',
-        lineStyle: { width: 3, color: '#FE79AB' },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0,   color: 'rgba(254,121,171,0.30)' },
-              { offset: 0.7, color: 'rgba(254,121,171,0.06)' },
-              { offset: 1,   color: 'rgba(254,121,171,0.00)' },
-            ],
-          },
-        },
+        lineStyle: { width: 1.5, color: '#111111' },
         markLine: {
           silent: true,
           symbol: 'none',
-          lineStyle: { color: '#D9D9DE', type: 'dashed', width: 1 },
+          lineStyle: { color: '#EBEBEB', type: 'solid', width: 1 },
           data: [{ yAxis: 0 }],
         },
       },
     ],
     animation: true,
-    animationDuration: 1200,
+    animationDuration: 1000,
     animationEasing: 'cubicOut',
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <ReactECharts option={option} style={{ height: 130 }} />
+    <div>
+      {/* Clean line chart */}
+      <ReactECharts option={option} style={{ height: 90 }} />
 
-      <div className="grid grid-cols-3 gap-2 text-center text-xs">
-        <div className="rounded-xl p-3" style={{ background: 'rgba(254,121,171,0.08)' }}>
-          <div className="font-black text-2xl text-[#FE79AB] leading-none">{data.positive_pct}%</div>
-          <div className="text-[#6F6F78] mt-1">Confident</div>
+      {/* Inline stats */}
+      <div style={{ display: 'flex', gap: 24, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 16 }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+            {data.positive_pct}%
+          </div>
+          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
+            Confident
+          </div>
         </div>
-        <div className="rounded-xl p-3 bg-[#EFEFF1]">
-          <div className="font-black text-2xl text-[#121114] leading-none">{data.neutral_pct}%</div>
-          <div className="text-[#6F6F78] mt-1">Neutral</div>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+            {data.neutral_pct}%
+          </div>
+          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
+            Neutral
+          </div>
         </div>
-        <div className="rounded-xl p-3" style={{ background: 'rgba(239,68,68,0.07)' }}>
-          <div className="font-black text-2xl text-[#EF4444] leading-none">{data.negative_pct}%</div>
-          <div className="text-[#6F6F78] mt-1">Pressure</div>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+            {data.negative_pct}%
+          </div>
+          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>
+            Pressure
+          </div>
         </div>
       </div>
 
-      <p className="text-xs text-[#6F6F78] text-center">
+      <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 12, letterSpacing: '0.02em' }}>
         {directionLabel[data.arc_direction] ?? data.arc_direction}
       </p>
     </div>

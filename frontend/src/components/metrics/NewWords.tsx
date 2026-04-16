@@ -1,59 +1,61 @@
-import { motion } from 'framer-motion'
 import type { NewWords as NewWordsType } from '../../types'
 
 const signalConfig = {
-  strong_growth: { label: 'Strong vocabulary growth', color: '#34D399' },
-  normal:        { label: 'Normal vocabulary range',  color: '#5FC7C2' },
-  plateau:       { label: 'Vocabulary plateau',        color: '#6F6F78' },
+  strong_growth: { label: 'Strong growth', color: '#059669' },
+  normal:        { label: 'Normal range',  color: '#6B7280' },
+  plateau:       { label: 'Plateau',       color: '#9CA3AF' },
 }
 
 export default function NewWords({ data }: { data: NewWordsType }) {
   const sig   = signalConfig[data.signal as keyof typeof signalConfig] ?? signalConfig.normal
-  const words = data.sample ?? []
+  const words = (data.sample ?? []).slice(0, 5)
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-end gap-5">
+    <div>
+      {/* Hero numbers */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 32 }}>
+        <span style={{
+          fontSize: 72, fontWeight: 800, color: '#FF4D7E',
+          lineHeight: 1, letterSpacing: '-0.04em',
+        }}>
+          {data.new_count}
+        </span>
         <div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 150 }}
-            className="text-6xl font-black text-[#FE79AB] leading-none"
-          >
-            {data.new_count}
-          </motion.div>
-          <div className="text-[#6F6F78] text-xs mt-1.5">new words</div>
-        </div>
-        <div className="pb-1">
-          <div className="text-3xl font-black text-[#121114] leading-none">{data.total_vocab}</div>
-          <div className="text-[#6F6F78] text-xs mt-1">total vocab</div>
+          <div style={{ fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.09em' }}>
+            new words
+          </div>
+          <div style={{ fontSize: 13, color: '#6B7280', marginTop: 3 }}>
+            {data.total_vocab} total vocabulary
+          </div>
         </div>
       </div>
 
-      <span
-        className="text-xs px-3 py-1.5 rounded-full w-fit font-semibold"
-        style={{ color: sig.color, background: sig.color + '14', border: `1px solid ${sig.color}30` }}
-      >
-        {sig.label}
-      </span>
-
+      {/* Editorial word list */}
       {words.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {words.map((w, i) => (
-            <motion.span
+        <div style={{ marginBottom: 20 }}>
+          {words.map((w) => (
+            <div
               key={w}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.04, type: 'spring', stiffness: 260 }}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium"
-              style={{ background: 'rgba(254,121,171,0.09)', color: '#FE79AB', border: '1px solid rgba(254,121,171,0.18)' }}
+              style={{
+                fontSize: 17, fontWeight: 500, color: '#111111',
+                borderBottom: '1px solid #EBEBEB',
+                padding: '11px 0',
+                letterSpacing: '-0.01em',
+              }}
             >
               {w}
-            </motion.span>
+            </div>
           ))}
         </div>
       )}
+
+      {/* Signal */}
+      <div style={{
+        fontSize: 10, fontWeight: 700, color: sig.color,
+        textTransform: 'uppercase', letterSpacing: '0.09em',
+      }}>
+        {sig.label}
+      </div>
     </div>
   )
 }

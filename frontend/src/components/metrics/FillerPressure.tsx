@@ -1,4 +1,3 @@
-import ReactECharts from 'echarts-for-react'
 import type { FillerPressure as FillerPressureType } from '../../types'
 
 export default function FillerPressure({ data }: { data: FillerPressureType }) {
@@ -7,65 +6,52 @@ export default function FillerPressure({ data }: { data: FillerPressureType }) {
     .slice(0, 6)
 
   if (!entries.length) {
-    return (
-      <div className="flex items-center justify-center h-32 text-[#6F6F78] text-sm">
-        No filler data available
-      </div>
-    )
-  }
-
-  const max = Math.max(...entries.map(([, v]) => v))
-
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: 8, right: 40, top: 4, bottom: 0, containLabel: true },
-    xAxis: {
-      type: 'value',
-      show: false,
-      max: max * 1.25,
-    },
-    yAxis: {
-      type: 'category',
-      data: entries.map(([t]) => t.length > 22 ? t.slice(0, 22) + '…' : t),
-      axisLabel: { color: '#6F6F78', fontSize: 12, fontWeight: 500 },
-      axisLine: { show: false },
-      axisTick: { show: false },
-    },
-    series: [{
-      type: 'bar',
-      data: entries.map(([, v]) => v),
-      barMaxWidth: 32,
-      itemStyle: {
-        borderRadius: [0, 8, 8, 0],
-        color: '#FE79AB',
-      },
-      label: {
-        show: true,
-        position: 'right',
-        color: '#121114',
-        fontSize: 12,
-        fontWeight: 'bold',
-        formatter: (p: { value: number }) => String(p.value),
-      },
-      emphasis: {
-        itemStyle: { color: '#121114' },
-      },
-    }],
-    animation: true,
-    animationDuration: 800,
-    animationEasing: 'cubicOut',
+    return <p style={{ fontSize: 13, color: '#9CA3AF' }}>No filler data available</p>
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-end gap-3">
-        <span className="text-5xl font-black text-[#121114] leading-none">{data.total}</span>
-        <span className="text-[#6F6F78] text-sm pb-1">total fillers</span>
+    <div>
+      {/* Hero */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{
+          fontSize: 72, fontWeight: 800, color: '#111111',
+          lineHeight: 1, letterSpacing: '-0.04em',
+        }}>
+          {data.total}
+        </div>
+        <div style={{
+          fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase',
+          letterSpacing: '0.09em', marginTop: 8,
+        }}>
+          Filler words
+        </div>
       </div>
-      <ReactECharts option={option} style={{ height: Math.max(entries.length * 44, 140) }} />
+
+      {/* Topic breakdown */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {entries.map(([topic, count], i) => (
+          <div
+            key={topic}
+            style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 0',
+              borderBottom: i < entries.length - 1 ? '1px solid #F3F4F6' : 'none',
+            }}
+          >
+            <span style={{ fontSize: 13, color: '#6B7280' }}>{topic}</span>
+            <span style={{
+              fontSize: 14, fontWeight: 700,
+              color: i === 0 ? '#111111' : '#9CA3AF',
+            }}>
+              {count}
+            </span>
+          </div>
+        ))}
+      </div>
+
       {data.worst_topic && (
-        <p className="text-xs text-[#6F6F78]">
-          Worst topic: <span className="text-[#FE79AB] font-semibold">{data.worst_topic}</span>
+        <p style={{ marginTop: 16, fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+          Highest: <span style={{ color: '#111111', fontWeight: 700 }}>{data.worst_topic}</span>
         </p>
       )}
     </div>

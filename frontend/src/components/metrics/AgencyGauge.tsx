@@ -1,66 +1,71 @@
-import GaugeComponent from 'react-gauge-component'
-import { motion } from 'framer-motion'
 import type { Agency } from '../../types'
 
-const statusLabel: Record<string, { label: string; color: string }> = {
-  reactive:   { label: 'Passenger — waits to be asked', color: '#EF4444' },
-  developing: { label: 'Developing independence',       color: '#6F6F78' },
-  proactive:  { label: 'Driver — owns the conversation', color: '#34D399' },
+const statusNarrative: Record<string, string> = {
+  reactive:   'Following the tutor\'s lead throughout the session',
+  developing: 'Building independence — initiating more each session',
+  proactive:  'Leading the conversation with confidence',
 }
 
 export default function AgencyGauge({ data }: { data: Agency }) {
-  const st = statusLabel[data.status] ?? statusLabel.developing
+  const narrative = statusNarrative[data.status] ?? statusNarrative.developing
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <GaugeComponent
-        value={data.score}
-        minValue={0}
-        maxValue={10}
-        type="radial"
-        arc={{
-          colorArray: ['#EF4444', '#6F6F78', '#34D399'],
-          padding: 0.02,
-          width: 0.25,
-          subArcs: [{ limit: 3 }, { limit: 6 }, { limit: 10 }],
-        }}
-        pointer={{ type: 'needle', color: '#121114', length: 0.7, width: 10 }}
-        labels={{
-          valueLabel: {
-            formatTextValue: v => `${v.toFixed(1)}`,
-            style: { fill: '#121114', fontSize: '28px', fontWeight: 'bold' },
-          },
-          tickLabels: {
-            type: 'outer',
-            ticks: [{ value: 0 }, { value: 5 }, { value: 10 }],
-            defaultTickValueConfig: { style: { fill: '#6F6F78', fontSize: '11px' } },
-          },
-        }}
-        style={{ width: '100%', maxWidth: 220 }}
-      />
-
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-sm font-semibold"
-        style={{ color: st.color }}
-      >
-        {st.label}
-      </motion.p>
-
-      <div className="grid grid-cols-2 gap-2 w-full text-center text-xs">
-        <div className="rounded-xl p-3 bg-[#F3F3F4]">
-          <div className="text-[#121114] font-black text-xl">{data.initiations}</div>
-          <div className="text-[#6F6F78] mt-0.5">Initiations</div>
+    <div>
+      {/* Hero % */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{
+          fontSize: 80, fontWeight: 800, color: '#FF4D7E',
+          lineHeight: 1, letterSpacing: '-0.04em',
+        }}>
+          {data.pct.toFixed(0)}%
         </div>
-        <div className="rounded-xl p-3 bg-[#F3F3F4]">
-          <div className="text-[#121114] font-black text-xl">{data.responses}</div>
-          <div className="text-[#6F6F78] mt-0.5">Responses</div>
+        <div style={{
+          fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase',
+          letterSpacing: '0.09em', marginTop: 8,
+        }}>
+          Student-initiated exchanges
         </div>
       </div>
 
-      <p className="text-xs text-[#6F6F78]">{data.pct.toFixed(0)}% student-initiated</p>
+      {/* Narrative */}
+      <p style={{
+        fontSize: 15, color: '#111111', lineHeight: 1.5,
+        marginBottom: 28, maxWidth: 280,
+      }}>
+        {narrative}
+      </p>
+
+      {/* Supporting stats */}
+      <div style={{
+        display: 'flex', gap: 32,
+        borderTop: '1px solid #EBEBEB', paddingTop: 20,
+      }}>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+            {data.initiations}
+          </div>
+          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 3 }}>
+            Initiations
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+            {data.responses}
+          </div>
+          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 3 }}>
+            Responses
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
+            {data.score.toFixed(1)}
+            <span style={{ fontSize: 14, color: '#9CA3AF', fontWeight: 400 }}>/10</span>
+          </div>
+          <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 3 }}>
+            Agency Score
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
