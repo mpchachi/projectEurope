@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion, useMotionValue, animate } from 'framer-motion'
+import { useMotionValue, animate } from 'framer-motion'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
