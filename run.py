@@ -13,10 +13,8 @@ from pathlib import Path
 from collections import Counter
 import anthropic
 
-DG_KEY = os.environ.get("DEEPGRAM_API_KEY")
-AN_KEY = os.environ.get("ANTHROPIC_API_KEY")
-if not DG_KEY or not AN_KEY:
-    raise RuntimeError("Missing API keys — set DEEPGRAM_API_KEY and ANTHROPIC_API_KEY (see start.bat.example)")
+DG_KEY = os.environ.get("DEEPGRAM_API_KEY", "")
+AN_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 MODEL  = "claude-sonnet-4-6"
 
 STOPWORDS = {"the","a","an","and","or","but","in","on","at","to","for","of","with",

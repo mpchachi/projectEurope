@@ -19,7 +19,7 @@ from pathlib import Path
 from collections import Counter
 import anthropic
 
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY")
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 MODEL         = "claude-sonnet-4-6"
 
 STOPWORDS = {"the","a","an","and","or","but","in","on","at","to","for","of","with",

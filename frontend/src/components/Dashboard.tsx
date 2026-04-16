@@ -1,6 +1,55 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Component } from 'react'
+import type { ReactNode, ErrorInfo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { AnalysisResult, Session } from '../types'
+
+// ─── Error Boundary ───────────────────────────────────────────────────────────
+
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { error: null }
+  }
+  static getDerivedStateFromError(error: Error) { return { error } }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[Dashboard] render error:', error, info.componentStack)
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{
+          margin: '48px auto', maxWidth: 520, padding: '28px 32px',
+          background: '#fff', borderRadius: 12, border: '1px solid #EAEAEA',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#EF4444', marginBottom: 8 }}>
+            Dashboard render error
+          </p>
+          <pre style={{
+            fontSize: 11, color: '#6B7280', whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word', lineHeight: 1.6,
+          }}>
+            {this.state.error.message}
+          </pre>
+          <button
+            onClick={() => this.setState({ error: null })}
+            style={{
+              marginTop: 16, fontSize: 12, fontWeight: 500,
+              color: '#FE79AB', background: 'none', border: 'none',
+              cursor: 'pointer', padding: 0,
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 import TalkRatio from './metrics/TalkRatio'
 import NewWords from './metrics/NewWords'
 import TopErrors from './metrics/TopErrors'
@@ -12,14 +61,10 @@ import TopicExpansion from './metrics/TopicExpansion'
 import SelfRepairs from './metrics/SelfRepairs'
 import ActiveRecall from './metrics/ActiveRecall'
 
-const CEFR_COLOR: Record<string, string> = {
-  A1: '#6F6F78', A2: '#3B82F6', B1: '#F59E0B',
-  B2: '#F97316', C1: '#34D399', C2: '#8B5CF6',
-}
-
 const CEFR_RANK: Record<string, number> = {
   A1: 0, A2: 1, B1: 2, B2: 3, C1: 4, C2: 5,
 }
+const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
 const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
   PROGRESSION: { bg: 'rgba(52,211,153,0.12)',  color: '#059669' },
@@ -28,259 +73,483 @@ const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
   LIVE:        { bg: 'rgba(59,130,246,0.1)',    color: '#2563EB' },
 }
 
-// ─── Metric Card ───────────────────────────────────────────────────────────────
+// ─── CEFR Progress Bar ─────────────────────────────────────────────────────────
 
-function MetricCard({ number, tag, title, subtitle, children, accent = false }: {
-  number: string; tag: string; title: string; subtitle: string;
-  children: React.ReactNode; accent?: boolean;
+function CefrProgressBar({ session, progression }: {
+  session: Session;
+  progression: NonNullable<AnalysisResult['progression']> | null;
 }) {
+  const currentLevel = session.cefr?.level ?? 'A1'
+  const currentRank  = CEFR_RANK[currentLevel] ?? 0
+  const targetFill   = (currentRank + 1) / 6 * 100
+
+  const journey   = progression?.cefr_journey ?? []
+  const startLevel = journey.length >= 2 ? journey[0] : null
+  const startRank  = startLevel && startLevel !== currentLevel ? (CEFR_RANK[startLevel] ?? null) : null
+
+  const [fillWidth, setFillWidth]       = useState(0)
+  const [markersVisible, setMarkersVisible] = useState(false)
+
+  useEffect(() => {
+    setFillWidth(0)
+    setMarkersVisible(false)
+    const t1 = setTimeout(() => setFillWidth(targetFill), 120)
+    const t2 = setTimeout(() => setMarkersVisible(true), 1350)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [currentLevel, targetFill])
+
+  const confidence = session.cefr?.confidence
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-white border border-[#D9D9DE] p-6 flex flex-col gap-4"
-      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'box-shadow 0.2s' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)' }}
+      className="bg-white rounded-2xl"
+      style={{ padding: 32, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #D9D9DE' }}
     >
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-mono text-[#D1D5DB]">{number}</span>
-          <span
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={accent
-              ? { background: 'rgba(254,121,171,0.10)', color: '#FE79AB' }
-              : { background: '#D9D9DE', color: '#6F6F78' }
-            }
-          >
-            {tag}
-          </span>
+      {/* Bar + markers */}
+      <div style={{ position: 'relative', paddingBottom: 40, marginBottom: 4 }}>
+
+        {/* Track */}
+        <div style={{
+          height: 40, borderRadius: 999, background: '#EFEFF1',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          {/* Animated gradient fill */}
+          <div style={{
+            position: 'absolute', inset: '0 auto 0 0',
+            width: `${fillWidth}%`,
+            background: 'linear-gradient(to right, #5FC7C2, #FE79AB)',
+            transition: 'width 1.2s cubic-bezier(0.4,0,0.2,1)',
+            borderRadius: 'inherit',
+          }} />
+
+          {/* Segment dividers */}
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} style={{
+              position: 'absolute', left: `${i / 6 * 100}%`,
+              top: 0, bottom: 0, width: 2,
+              background: 'rgba(255,255,255,0.45)', zIndex: 2,
+            }} />
+          ))}
+
+          {/* Labels */}
+          {CEFR_LEVELS.map((lv, i) => {
+            const isFilled = (i + 1) / 6 * 100 <= fillWidth + 0.5
+            return (
+              <div key={lv} style={{
+                position: 'absolute',
+                left: `${(i + 0.5) / 6 * 100}%`,
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: 13, fontWeight: 700,
+                color: isFilled ? '#FFFFFF' : '#6F6F78',
+                transition: 'color 0.15s',
+                zIndex: 3, userSelect: 'none',
+              }}>
+                {lv}
+              </div>
+            )
+          })}
         </div>
-        <h3 className="text-[#121114] font-semibold text-base">{title}</h3>
-        <p className="text-[#6F6F78] text-xs mt-0.5">{subtitle}</p>
+
+        {/* Start marker */}
+        {startRank !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: markersVisible ? 1 : 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              position: 'absolute',
+              left: `${startRank / 6 * 100}%`,
+              top: 40,
+              transform: 'translateX(-50%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+            }}
+          >
+            <div style={{ width: 2, height: 6, background: '#5FC7C2' }} />
+            <div style={{
+              width: 10, height: 10, borderRadius: '50%',
+              background: '#5FC7C2', border: '2px solid white',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+            }} />
+            <p style={{ fontSize: 11, color: '#6F6F78', marginTop: 3, whiteSpace: 'nowrap' }}>Started</p>
+          </motion.div>
+        )}
+
+        {/* Current marker */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: markersVisible ? 1 : 0 }}
+          transition={{ duration: 0.4 }}
+          style={{
+            position: 'absolute',
+            left: `${Math.min(99, targetFill)}%`,
+            top: 40,
+            transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+          }}
+        >
+          <div style={{ width: 2, height: 6, background: '#FE79AB' }} />
+          <div style={{ position: 'relative', width: 16, height: 16 }}>
+            {/* Pulsing outer ring */}
+            <motion.div
+              animate={{ scale: [1, 1.7, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute', inset: -4,
+                borderRadius: '50%', border: '2px solid #FE79AB',
+              }}
+            />
+            {/* Dot */}
+            <div style={{
+              width: 16, height: 16, borderRadius: '50%',
+              background: '#FE79AB', border: '3px solid white',
+              boxShadow: '0 2px 6px rgba(254,121,171,0.45)',
+            }} />
+          </div>
+          <p style={{ fontSize: 11, color: '#FE79AB', fontWeight: 600, marginTop: 3, whiteSpace: 'nowrap' }}>
+            Current
+          </p>
+        </motion.div>
       </div>
-      <div>{children}</div>
+
+      {/* Bottom row */}
+      <div className="flex items-center gap-2.5">
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#121114' }}>CEFR Estimate</span>
+        <span style={{ fontSize: 20, fontWeight: 900, color: '#121114' }}>
+          {currentLevel}
+        </span>
+        {confidence && (
+          <span style={{
+            fontSize: 12, color: '#059669', fontWeight: 600,
+            background: 'rgba(52,211,153,0.10)', borderRadius: 20,
+            padding: '3px 12px',
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+          }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L3 6v6c0 5.25 3.8 10.15 9 11.5C18.2 22.15 22 17.25 22 12V6L12 2z" fill="#059669" />
+              <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {confidence} confidence
+          </span>
+        )}
+        {session.cefr?.reasoning && (
+          <span className="ml-auto text-xs text-[#6F6F78] max-w-xs text-right line-clamp-1 hidden md:block">
+            {session.cefr.reasoning}
+          </span>
+        )}
+      </div>
     </motion.div>
-  )
-}
-
-// ─── Section Title ─────────────────────────────────────────────────────────────
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs font-semibold text-[#6F6F78] uppercase tracking-[0.1em] whitespace-nowrap">
-        {children}
-      </span>
-      <div className="flex-1 h-px bg-[#D9D9DE]" />
-    </div>
-  )
-}
-
-// ─── Trend Badge ───────────────────────────────────────────────────────────────
-
-function TrendBadge({ prev, curr, type }: {
-  prev?: string | number; curr?: string | number; type: 'cefr' | 'number'
-}) {
-  if (prev == null || curr == null) return <span className="text-[#D1D5DB] text-xs">—</span>
-
-  let direction: 'up' | 'down' | 'flat' = 'flat'
-
-  if (type === 'cefr') {
-    const rPrev = CEFR_RANK[prev as string] ?? -1
-    const rCurr = CEFR_RANK[curr as string] ?? -1
-    if (rCurr > rPrev) direction = 'up'
-    else if (rCurr < rPrev) direction = 'down'
-  } else {
-    const diff = Number(curr) - Number(prev)
-    if (diff > 0) direction = 'up'
-    else if (diff < 0) direction = 'down'
-  }
-
-  const styles = {
-    up:   { bg: 'rgba(52,211,153,0.12)', color: '#059669', icon: '↑' },
-    down: { bg: 'rgba(239,68,68,0.10)',  color: '#EF4444', icon: '↓' },
-    flat: { bg: '#D9D9DE',               color: '#6F6F78', icon: '—' },
-  }
-  const s = styles[direction]
-
-  return (
-    <span
-      className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-      style={{ background: s.bg, color: s.color }}
-    >
-      {s.icon}
-    </span>
   )
 }
 
 // ─── Overview Strip ────────────────────────────────────────────────────────────
 
+function SignalsCard({ progression }: {
+  progression: NonNullable<AnalysisResult['progression']> | null;
+}) {
+  if (!progression) {
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-xs text-[#6F6F78] uppercase tracking-widest font-medium">Signals</p>
+        <p className="text-sm text-[#6F6F78]">First session — no comparison yet</p>
+      </div>
+    )
+  }
+
+  const { positive_count, total_signals, signals } = progression
+  const isPlat = positive_count < Math.ceil(total_signals / 2)
+
+  return (
+    <div className="flex flex-col gap-3 h-full">
+      {/* KPI */}
+      <div className="flex items-baseline gap-1">
+        <span style={{ fontSize: 36, fontWeight: 800, color: '#FE79AB', lineHeight: 1 }}>
+          {positive_count}
+        </span>
+        <span style={{ fontSize: 20, color: '#6F6F78', lineHeight: 1 }}>
+          /{total_signals}
+        </span>
+      </div>
+      <p className="text-xs text-[#6F6F78] uppercase tracking-widest -mt-1">signals</p>
+
+      {/* Tags */}
+      <div className="flex flex-wrap gap-1.5">
+        {signals.map(s => (
+          <span
+            key={s.name}
+            className="text-xs rounded-full px-2.5 py-1 font-medium"
+            style={s.positive
+              ? { background: 'rgba(52,211,153,0.08)', color: '#059669' }
+              : { background: 'rgba(239,68,68,0.07)',  color: '#EF4444' }
+            }
+          >
+            {s.positive ? '✓' : '✗'} {s.name}
+          </span>
+        ))}
+      </div>
+
+      {/* Plateau warning */}
+      {isPlat && (
+        <div
+          className="mt-auto rounded-r-lg text-xs"
+          style={{
+            borderLeft: '3px solid #FBBF24',
+            background: 'rgba(251,191,36,0.06)',
+            color: '#D97706', padding: '8px 12px',
+          }}
+        >
+          Plateau risk — review tutor strategy
+        </div>
+      )}
+    </div>
+  )
+}
+
+function InsightCard({ session, progression }: {
+  session: Session;
+  progression: NonNullable<AnalysisResult['progression']> | null;
+}) {
+  const good = progression?.positive_count ?? 0
+  const tot  = progression?.total_signals ?? 1
+  const improving = good >= Math.ceil(tot * 0.6)
+  const verdict = progression?.verdict ?? session.cefr?.reasoning ?? ''
+
+  // derive secondary line from signals
+  const negSignals = (progression?.signals ?? []).filter(s => !s.positive).map(s => s.name)
+  const secondary = negSignals.length
+    ? `Areas to watch: ${negSignals.slice(0, 2).join(', ')}`
+    : progression
+      ? 'All tracked indicators are moving in the right direction'
+      : 'Run a second session to unlock progression comparison'
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Icon */}
+      {improving ? (
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: 'rgba(52,211,153,0.10)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 17L12 10l7 7" />
+            <path d="M12 10V3" />
+          </svg>
+        </div>
+      ) : (
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: 'rgba(251,191,36,0.10)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </div>
+      )}
+
+      {/* Main text */}
+      <p style={{ fontSize: 14, fontWeight: 500, color: '#121114', lineHeight: 1.5 }}>
+        {verdict || (improving ? 'Student is making solid progress across key metrics.' : 'Mixed signals — some areas need attention.')}
+      </p>
+
+      {/* Secondary */}
+      <p style={{ fontSize: 13, color: '#6F6F78', lineHeight: 1.5 }}>
+        {secondary}
+      </p>
+    </div>
+  )
+}
+
+function SummaryCard({ summary }: { summary: string }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-2 h-full">
+      <p className="text-[11px] text-[#6F6F78] uppercase tracking-[1.5px] font-medium">Session Summary</p>
+
+      <div style={{
+        overflow: 'hidden',
+        maxHeight: expanded ? 600 : 76,
+        transition: 'max-height 0.3s ease',
+      }}>
+        <p style={{
+          fontSize: 13, color: '#4B5563', lineHeight: 1.6,
+          display: !expanded ? '-webkit-box' : undefined,
+          WebkitLineClamp: !expanded ? 3 : undefined,
+          WebkitBoxOrient: !expanded ? 'vertical' : undefined,
+          overflow: !expanded ? 'hidden' : undefined,
+        }}>
+          {summary || 'No summary available for this session.'}
+        </p>
+      </div>
+
+      {summary && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="mt-auto text-left text-xs font-semibold"
+          style={{ color: '#FE79AB', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+          onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+        >
+          {expanded ? 'Collapse ↑' : 'Read full summary ↓'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function OverviewStrip({ session, progression }: {
   session: Session;
   progression: NonNullable<AnalysisResult['progression']> | null;
 }) {
-  const cefrColor = CEFR_COLOR[session.cefr?.level] ?? '#6F6F78'
-  const good = progression?.positive_count ?? 0
-  const tot  = progression?.total_signals ?? 0
-  const verdictColor  = good >= 4 ? '#059669' : good >= 2 ? '#D97706' : '#EF4444'
-  const verdictBg     = good >= 4 ? 'rgba(52,211,153,0.06)' : good >= 2 ? 'rgba(251,191,36,0.06)' : 'rgba(239,68,68,0.06)'
-  const verdictBorder = good >= 4 ? '#34D399' : good >= 2 ? '#FBBF24' : '#EF4444'
+  const cardStyle: React.CSSProperties = {
+    background: '#FFFFFF',
+    borderRadius: 14,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+    border: '1px solid #D9D9DE',
+    padding: 20,
+    flex: 1,
+    minHeight: 180,
+    display: 'flex',
+    flexDirection: 'column',
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-[#D9D9DE] rounded-2xl overflow-hidden"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+      transition={{ delay: 0.08 }}
+      style={{ display: 'flex', gap: 16 }}
+      className="flex-col md:flex-row"
     >
-      <div className="grid grid-cols-[2fr_1.8fr_1.4fr] divide-x divide-[#D9D9DE]">
-
-        {/* CEFR — 40% */}
-        <div className="p-6 flex items-start gap-4">
-          <div
-            className="text-5xl font-black px-4 py-2 rounded-xl shrink-0 leading-none"
-            style={{ background: cefrColor + '18', color: cefrColor }}
-          >
-            {session.cefr?.level ?? '?'}
-          </div>
-          <div className="min-w-0">
-            <div className="text-[#121114] font-semibold text-sm">CEFR Estimate</div>
-            {session.cefr?.confidence && (
-              <div className="text-[#34D399] text-xs font-medium mt-0.5">{session.cefr.confidence} confidence</div>
-            )}
-            {session.cefr?.reasoning && (
-              <p className="text-[#6F6F78] text-xs mt-2 leading-relaxed line-clamp-3">{session.cefr.reasoning}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Progression signals — 35% */}
-        <div className="p-6 flex flex-col gap-3">
-          {progression ? (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-[#6F6F78] font-medium">Progression signals</span>
-                <span className="text-sm font-bold" style={{ color: verdictColor }}>{good}/{tot}</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {progression.signals.slice(0, 6).map(s => (
-                  <span
-                    key={s.name}
-                    className="text-xs px-2 py-0.5 rounded-full"
-                    style={s.positive
-                      ? { background: 'rgba(52,211,153,0.08)', color: '#059669' }
-                      : { background: 'rgba(239,68,68,0.08)',  color: '#EF4444' }
-                    }
-                  >
-                    {s.positive ? '✓' : '✗'} {s.name}
-                  </span>
-                ))}
-              </div>
-              <div
-                className="rounded-lg p-2.5 mt-auto"
-                style={{ background: verdictBg, borderLeft: `2px solid ${verdictBorder}` }}
-              >
-                <p className="text-xs leading-relaxed" style={{ color: verdictColor }}>{progression.verdict}</p>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full text-[#6F6F78] text-sm">
-              Single session — no comparison yet
-            </div>
-          )}
-        </div>
-
-        {/* Session Summary — 25% */}
-        <div className="p-6">
-          <div className="text-xs font-medium text-[#6F6F78] uppercase tracking-wider mb-2">Session Summary</div>
-          {session.session_summary ? (
-            <p className="text-[#4B5563] text-sm leading-relaxed line-clamp-5">{session.session_summary}</p>
-          ) : (
-            <p className="text-[#6F6F78] text-sm">No summary available</p>
-          )}
-        </div>
-
+      <div style={cardStyle}>
+        <SignalsCard progression={progression} />
+      </div>
+      <div style={cardStyle}>
+        <InsightCard session={session} progression={progression} />
+      </div>
+      <div style={cardStyle}>
+        <SummaryCard summary={session.session_summary} />
       </div>
     </motion.div>
   )
 }
 
-// ─── Progression Table ─────────────────────────────────────────────────────────
+// ─── Section Label ────────────────────────────────────────────────────────────
 
-function ProgressionTable({ data, labels }: {
-  data: NonNullable<AnalysisResult['progression']>; labels: string[];
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3" style={{ marginBottom: 16 }}>
+      <span style={{
+        fontSize: 12, fontWeight: 500, color: '#9CA3AF',
+        textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap',
+      }}>
+        {children}
+      </span>
+      <div style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
+    </div>
+  )
+}
+
+// ─── Metric Header ────────────────────────────────────────────────────────────
+
+function MetricHeader({ number, title, subtitle }: {
+  number: string; title: string; subtitle: string;
 }) {
-  const mt = data.metrics_table
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 400, color: '#D1D5DB', lineHeight: 1 }}>{number}</div>
+      <h3 style={{
+        fontSize: 15, fontWeight: 600, color: '#121118',
+        letterSpacing: '-0.01em', margin: '4px 0 3px', lineHeight: 1.2,
+      }}>
+        {title}
+      </h3>
+      <p style={{ fontSize: 12, fontWeight: 400, color: '#9CA3AF', lineHeight: 1.3 }}>{subtitle}</p>
+    </div>
+  )
+}
 
-  const rows: [string, (number | string)[], 'cefr' | 'number', (v: any) => string][] = [
-    ['CEFR',          mt.cefr,          'cefr',   v => v],
-    ['Talk time %',   mt.talk_time_pct, 'number', v => `${v.toFixed(1)}%`],
-    ['New words',     mt.new_words,     'number', v => String(v)],
-    ['Total vocab',   mt.total_vocab,   'number', v => String(v)],
-    ['Fillers',       mt.fillers,       'number', v => String(v)],
-    ['Agency / 10',   mt.agency_score,  'number', v => v.toFixed(1)],
-    ['Active recall', mt.active_recall, 'number', v => String(v)],
-  ]
+// ─── Metric Card ──────────────────────────────────────────────────────────────
+
+function MetricCard({ number, title, subtitle, children, style }: {
+  number: string; title: string; subtitle: string;
+  children: React.ReactNode; style?: React.CSSProperties;
+}) {
+  const [hovered, setHovered] = useState(false)
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-[#D9D9DE] rounded-2xl overflow-hidden"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+      style={{
+        background: '#FFFFFF',
+        borderRadius: 12,
+        border: '1px solid #EAEAEA',
+        boxShadow: hovered ? '0 2px 4px rgba(0,0,0,0.06)' : '0 1px 2px rgba(0,0,0,0.04)',
+        padding: 20,
+        transition: 'box-shadow 0.15s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        ...style,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      <div className="px-6 py-4 border-b border-[#D9D9DE]">
-        <h2 className="text-[#121114] font-semibold text-sm">Progression Table</h2>
-        <p className="text-[#6F6F78] text-xs mt-0.5">
-          {data.cefr_journey[0]} → {data.cefr_journey[data.cefr_journey.length - 1]}
-        </p>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[#D9D9DE]">
-              <th className="text-left px-6 py-3 text-[#6F6F78] font-medium text-xs">Metric</th>
-              {labels.map(l => (
-                <th key={l} className="px-4 py-3 text-right text-[#6F6F78] font-medium text-xs">{l}</th>
-              ))}
-              {labels.length > 1 && (
-                <th className="px-4 py-3 text-center text-[#6F6F78] font-medium text-xs">Trend</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([label, values, type, fmt], ri) => (
-              <tr
-                key={label}
-                className="border-b border-[#D9D9DE] transition-colors duration-150"
-                style={{ background: ri % 2 === 0 ? '#FFFFFF' : '#F3F3F4' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#F9F9FB')}
-                onMouseLeave={e => (e.currentTarget.style.background = ri % 2 === 0 ? '#FFFFFF' : '#F3F3F4')}
-              >
-                <td className="px-6 py-2.5 text-[#6F6F78] text-xs font-medium">{label}</td>
-                {(values as (number | string)[]).map((v, i) => (
-                  <td key={i} className="px-4 py-2.5 text-right text-xs">
-                    {type === 'cefr' ? (
-                      <span className="font-bold" style={{ color: CEFR_COLOR[v as string] ?? '#6F6F78' }}>{v}</span>
-                    ) : (
-                      <span className="text-[#121114] font-semibold">{fmt(v)}</span>
-                    )}
-                  </td>
-                ))}
-                {labels.length > 1 && (
-                  <td className="px-4 py-2.5 text-center">
-                    <TrendBadge
-                      prev={(values as (number | string)[])[values.length - 2]}
-                      curr={(values as (number | string)[])[values.length - 1]}
-                      type={type}
-                    />
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <MetricHeader number={number} title={title} subtitle={subtitle} />
+      <div style={{ flex: 1 }}>{children}</div>
+    </motion.div>
+  )
+}
+
+// ─── Dual Metric Card (Talk Ratio + Agency) ───────────────────────────────────
+
+function DualMetricCard({ session }: { session: Session }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        background: '#FFFFFF',
+        borderRadius: 12,
+        border: '1px solid #EAEAEA',
+        boxShadow: hovered ? '0 2px 4px rgba(0,0,0,0.06)' : '0 1px 2px rgba(0,0,0,0.04)',
+        padding: 20,
+        transition: 'box-shadow 0.15s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <MetricHeader number="01" title="Talk Ratio" subtitle="Who owned the floor" />
+      {session.talk_ratio ? (
+        <TalkRatio
+          studentPercent={session.talk_ratio.student_pct}
+          tutorPercent={session.talk_ratio.tutor_pct}
+          silencePercent={Math.max(0, 100 - session.talk_ratio.student_pct - session.talk_ratio.tutor_pct)}
+        />
+      ) : (
+        <p style={{ fontSize: 13, color: '#9CA3AF' }}>No data</p>
+      )}
+
+      <div style={{ height: 1, background: '#F0F0F0', margin: '20px 0' }} />
+
+      <MetricHeader number="05" title="Conversational Agency" subtitle="Did the student lead or follow?" />
+      <div style={{ flex: 1 }}>
+        {session.agency ? (
+          <AgencyGauge data={session.agency} />
+        ) : (
+          <p style={{ fontSize: 13, color: '#9CA3AF' }}>No data</p>
+        )}
       </div>
     </motion.div>
   )
@@ -317,7 +586,6 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
     >
       <div className="max-w-[1200px] mx-auto px-6 h-full flex items-center gap-4">
 
-        {/* Left: back + name + badge */}
         <button
           onClick={onBack}
           className="text-[#6F6F78] hover:text-[#121114] transition-colors text-sm flex items-center gap-1.5 shrink-0"
@@ -330,7 +598,7 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
 
         {preset && (
           <>
-            <div className="w-px h-4 bg-[#E5E7EB] shrink-0" />
+            <div className="w-px h-4 bg-[#D9D9DE] shrink-0" />
             <span className="text-[#121114] font-bold text-sm shrink-0">{preset.name}</span>
             {badgeStyle && (
               <span
@@ -343,7 +611,6 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
           </>
         )}
 
-        {/* Center: session tabs */}
         <div className="flex-1 flex items-center justify-center gap-1">
           {sessions.map((s, i) => (
             <button
@@ -352,7 +619,7 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
               className="px-3 py-1 rounded-lg text-xs transition-all duration-200"
               style={activeSession === i
                 ? { background: '#FE79AB', color: '#FFFFFF', fontWeight: 600 }
-                : { background: '#D9D9DE', color: '#6F6F78' }
+                : { background: '#EFEFF1', color: '#6F6F78' }
               }
             >
               {s.label}
@@ -360,7 +627,6 @@ function StickyHeader({ data, sessions, activeSession, setActiveSession, onBack 
           ))}
         </div>
 
-        {/* Right: CEFR journey badge */}
         {cefrJourney && cefrJourney.length >= 2 && (
           <div
             className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0"
@@ -382,87 +648,134 @@ function SessionView({ session, progression }: {
   progression: NonNullable<AnalysisResult['progression']> | null;
 }) {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col" style={{ gap: 48 }}>
 
-      <OverviewStrip session={session} progression={progression} />
+      <CefrProgressBar session={session} progression={progression} />
+      <OverviewStrip   session={session} progression={progression} />
 
-      {/* ── Fluency & Confidence ──────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-5">
-        <SectionTitle>Fluency &amp; Confidence</SectionTitle>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <MetricCard number="01" tag="Base" title="Talk Ratio" subtitle="Who owned the floor">
-            <TalkRatio
-              studentPercent={session.talk_ratio.student_pct}
-              tutorPercent={session.talk_ratio.tutor_pct}
-              silencePercent={Math.max(0, 100 - session.talk_ratio.student_pct - session.talk_ratio.tutor_pct)}
-            />
-          </MetricCard>
+      {/* ── A: Session Dynamics ───────────────────────────────────────────────── */}
+      <div>
+        <SectionLabel>Session Dynamics</SectionLabel>
+        <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] items-stretch" style={{ gap: 12 }}>
 
-          <MetricCard number="08" tag="Differentiator" title="Filler Pressure" subtitle="Where hesitation clusters by topic" accent>
-            <FillerPressure data={session.filler_pressure} />
-          </MetricCard>
+          {/* Left 60% — Talk Ratio + Agency stacked in one card */}
+          <DualMetricCard session={session} />
 
-          <MetricCard number="11" tag="Differentiator" title="Sentiment Arc" subtitle="Confidence shape through the session" accent>
-            <SentimentArc data={session.sentiment_arc} />
-          </MetricCard>
+          {/* Right 40% — three cards of equal height */}
+          <div className="flex flex-col" style={{ gap: 12 }}>
+            <MetricCard
+              number="07"
+              title="Self-Repair Rate"
+              subtitle="Self-corrections before tutor intervened"
+              style={{ flex: 1 }}
+            >
+              <SelfRepairs data={session.self_repairs} />
+            </MetricCard>
 
-          <MetricCard number="07" tag="Differentiator" title="Self-Repair Rate" subtitle="Mistakes caught before the tutor" accent>
-            <SelfRepairs data={session.self_repairs} />
-          </MetricCard>
+            <MetricCard
+              number="08"
+              title="Filler Pressure Map"
+              subtitle="Where hesitation clusters by topic"
+              style={{ flex: 1 }}
+            >
+              <FillerPressure data={session.filler_pressure} />
+            </MetricCard>
+
+            <MetricCard
+              number="11"
+              title="Sentiment Arc"
+              subtitle="Confidence curve through the session"
+              style={{ flex: 1 }}
+            >
+              <SentimentArc data={session.sentiment_arc} />
+            </MetricCard>
+          </div>
+
         </div>
       </div>
 
-      {/* ── Vocabulary & Knowledge ────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-5">
-        <SectionTitle>Vocabulary &amp; Knowledge</SectionTitle>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <MetricCard number="02" tag="Base" title="New Words" subtitle="Vocabulary that appeared for the first time">
-            <NewWords data={session.new_words} />
-          </MetricCard>
+      {/* ── B: Learning Between Sessions ──────────────────────────────────────── */}
+      <div>
+        <SectionLabel>Learning Between Sessions</SectionLabel>
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr] items-stretch" style={{ gap: 12 }}>
 
-          <MetricCard number="06" tag="Differentiator" title="Active Recall" subtitle="Did last session stick?" accent>
-            <ActiveRecall data={session.active_recall} />
-          </MetricCard>
+          {/* Left 40% — New Words + Active Recall stacked */}
+          <div className="flex flex-col" style={{ gap: 12 }}>
+            <MetricCard
+              number="02"
+              title="New Words"
+              subtitle="Vocabulary that appeared for the first time"
+              style={{ flex: 1 }}
+            >
+              <NewWords data={session.new_words} />
+            </MetricCard>
 
-          <MetricCard number="12" tag="Differentiator" title="Topic Expansion" subtitle="Is the student's world growing?" accent>
+            <MetricCard
+              number="06"
+              title="Active Recall"
+              subtitle="Words from previous sessions that reappeared"
+              style={{ flex: 1 }}
+            >
+              <ActiveRecall data={session.active_recall} />
+            </MetricCard>
+          </div>
+
+          {/* Right 60% — Topic Expansion single tall card */}
+          <MetricCard
+            number="12"
+            title="Topic Expansion"
+            subtitle="How the conversation universe grows"
+            style={{ minHeight: 400, height: '100%' }}
+          >
             <TopicExpansion data={session.topic_expansion} />
           </MetricCard>
 
-          <MetricCard number="09" tag="Differentiator" title="Code-Switching" subtitle="When English wasn't enough" accent>
+        </div>
+      </div>
+
+      {/* ── C: Diagnostic ─────────────────────────────────────────────────────── */}
+      <div style={{ paddingBottom: 48 }}>
+        <SectionLabel>Diagnostic</SectionLabel>
+        <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 12 }}>
+
+          <MetricCard number="03" title="Top 3 Errors" subtitle="Grammar and vocabulary corrections">
+            <TopErrors data={session.top_errors} />
+          </MetricCard>
+
+          <MetricCard number="10" title="Gray Zones Map" subtitle="Structures the student avoids">
+            <GrayZones data={session.gray_zones} />
+          </MetricCard>
+
+          <MetricCard number="09" title="Code-Switching" subtitle="Moments of switching to native language">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <span className="text-4xl font-bold text-[#FE79AB]">{session.code_switching?.count ?? 0}</span>
-                <span className="text-[#6F6F78] text-sm">switches</span>
+                <span style={{ fontSize: 28, fontWeight: 600, color: '#FE79AB', lineHeight: 1 }}>
+                  {session.code_switching?.count ?? 0}
+                </span>
+                <span style={{ fontSize: 14, color: '#9CA3AF' }}>switches</span>
               </div>
               {(session.code_switching?.count ?? 0) === 0 ? (
-                <span className="text-xs text-[#059669]">✓ Stayed in English throughout</span>
+                <div
+                  className="flex items-center gap-2 rounded-md px-3 py-2"
+                  style={{ background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.18)' }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span style={{ fontSize: 12, color: '#059669', fontWeight: 500 }}>Stayed in English throughout</span>
+                </div>
               ) : (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {session.code_switching.instances.slice(0, 3).map((inst, i) => (
-                    <span key={i} className="text-xs text-[#6F6F78] italic">"{inst}"</span>
+                    <p key={i} style={{ fontSize: 12, color: '#6B7280', fontStyle: 'italic', lineHeight: 1.5 }}>
+                      "{inst}"
+                    </p>
                   ))}
                 </div>
               )}
             </div>
           </MetricCard>
-        </div>
-      </div>
 
-      {/* ── Grammar & Structure ───────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-5">
-        <SectionTitle>Grammar &amp; Structure</SectionTitle>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <MetricCard number="03" tag="Base" title="Top 3 Errors" subtitle="What went wrong — and the fix">
-            <TopErrors data={session.top_errors} />
-          </MetricCard>
-
-          <MetricCard number="10" tag="Differentiator" title="Gray Zones" subtitle="Grammar avoided — not just wrong" accent>
-            <GrayZones data={session.gray_zones} />
-          </MetricCard>
-
-          <MetricCard number="05" tag="Differentiator" title="Conversational Agency" subtitle="Passenger or driver?" accent>
-            <AgencyGauge data={session.agency} />
-          </MetricCard>
         </div>
       </div>
 
@@ -472,7 +785,7 @@ function SessionView({ session, progression }: {
 
 // ─── Root Dashboard ────────────────────────────────────────────────────────────
 
-export default function Dashboard({ data, onBack }: { data: AnalysisResult; onBack: () => void }) {
+function DashboardInner({ data, onBack }: { data: AnalysisResult; onBack: () => void }) {
   const [activeSession, setActiveSession] = useState(0)
   const sessions = data.sessions ?? []
 
@@ -486,27 +799,31 @@ export default function Dashboard({ data, onBack }: { data: AnalysisResult; onBa
         onBack={onBack}
       />
 
-      <div className="max-w-[1200px] mx-auto px-6 py-8 flex flex-col gap-8">
-
-        {/* Progression Table (multi-session only) */}
-        {data.progression && sessions.length > 1 && (
-          <ProgressionTable data={data.progression} labels={sessions.map(s => s.label)} />
-        )}
-
-        {/* Session Content */}
+      <div className="max-w-[1200px] mx-auto px-6 py-8">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeSession}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
-          >
-            <SessionView session={sessions[activeSession]} progression={data.progression} />
-          </motion.div>
+          {sessions[activeSession] ? (
+            <motion.div
+              key={activeSession}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              <SessionView session={sessions[activeSession]} progression={data.progression} />
+            </motion.div>
+          ) : (
+            <p style={{ fontSize: 13, color: '#9CA3AF', padding: '48px 0' }}>No session data available.</p>
+          )}
         </AnimatePresence>
-
       </div>
     </div>
+  )
+}
+
+export default function Dashboard({ data, onBack }: { data: AnalysisResult; onBack: () => void }) {
+  return (
+    <ErrorBoundary>
+      <DashboardInner data={data} onBack={onBack} />
+    </ErrorBoundary>
   )
 }

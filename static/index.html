@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Language Coach · Preply Hackathon</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            preply: {
+              green:      '#00B27A',
+              'green-d':  '#008F62',
+              'green-lg': '#E6F7F2',
+              navy:       '#1A1A2E',
+              'gray-bg':  '#F5F7FA',
+            }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    .spin { animation: spin 1.4s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pulse-ring { animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(1.05); } }
+    .card-hover { transition: transform .15s ease, box-shadow .15s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.09); }
+    .tab-active { box-shadow: 0 2px 0 #00B27A; }
+  </style>
+</head>
+<body class="bg-preply-gray-bg min-h-screen text-preply-navy">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+const API = window.location.origin;
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+const Ic = {
+  folder: () => <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={1.6} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>,
+  mic:    () => <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={1.6} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>,
+  back:   () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>,
+  check:  () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>,
+  x:      () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
+  stop:   () => <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>,
+};
+
+// ─── Shared UI ────────────────────────────────────────────────────────────────
+
+const Logo = () => (
+  <div className="flex items-center gap-2.5">
+    <svg viewBox="0 0 32 32" className="w-7 h-7 shrink-0">
+      <rect width="32" height="32" rx="7" fill="#00B27A"/>
+      <text x="16" y="22" textAnchor="middle" fill="white" fontSize="16" fontWeight="800" fontFamily="Inter,sans-serif">P</text>
+    </svg>
+    <span className="font-bold text-lg text-preply-navy tracking-tight">Language Coach</span>
+  </div>
+);
+
+const Spinner = ({ msg = "Analyzing…", sub = "" }) => (
+  <div className="flex flex-col items-center justify-center py-24 gap-5">
+    <div className="w-12 h-12 rounded-full border-4 border-preply-green-lg border-t-preply-green spin" />
+    <div className="text-center">
+      <p className="font-semibold text-preply-navy">{msg}</p>
+      {sub && <p className="text-sm text-gray-400 mt-1">{sub}</p>}
+    </div>
+  </div>
+);
+
+const Bar = ({ value, max = 100, color = "bg-preply-green", label, right }) => {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div className="flex items-center gap-3">
+      {label && <span className="text-xs text-gray-500 w-16 shrink-0">{label}</span>}
+      <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+        <div className={`${color} h-1.5 rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+      </div>
+      {right && <span className="text-xs font-semibold text-gray-600 w-10 text-right shrink-0">{right}</span>}
+    </div>
+  );
+};
+
+const Pill = ({ text, variant = "green" }) => {
+  const v = {
+    green:  "bg-preply-green-lg text-preply-green",
+    blue:   "bg-blue-50 text-blue-700",
+    gray:   "bg-gray-100 text-gray-600",
+    orange: "bg-orange-50 text-orange-700",
+    purple: "bg-purple-50 text-purple-700",
+    red:    "bg-red-50 text-red-700",
+  };
+  return <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${v[variant] || v.gray}`}>{text}</span>;
+};
+
+const StoryBadge = ({ badge, story }) => {
+  const map = { improvement:"green", plateau:"orange", cefr_range:"blue", live:"purple" };
+  return <Pill text={badge} variant={map[story] || "gray"} />;
+};
+
+const CEFRBadge = ({ level }) => {
+  const map = { A1:"bg-gray-100 text-gray-600", A2:"bg-yellow-100 text-yellow-700",
+                B1:"bg-orange-100 text-orange-700", B2:"bg-blue-100 text-blue-700",
+                C1:"bg-preply-green-lg text-preply-green", C2:"bg-green-200 text-green-800", "?":"bg-gray-100 text-gray-400" };
+  return <span className={`text-sm font-black px-3 py-1 rounded-full ${map[level] || map["?"]}`}>{level}</span>;
+};
+
+const MCard = ({ tag, title, sub, children, className = "" }) => (
+  <div className={`card-hover bg-white rounded-2xl p-5 border border-gray-100 shadow-sm ${className}`}>
+    <div className="mb-3">
+      <span className="text-xs font-bold text-preply-green uppercase tracking-widest">{tag}</span>
+      <h3 className="text-sm font-bold text-preply-navy mt-0.5">{title}</h3>
+      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    </div>
+    {children}
+  </div>
+);
+
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+
+const HomeScreen = ({ onImport, onLive }) => (
+  <div className="min-h-screen flex flex-col bg-white">
+    <header className="px-8 py-5 border-b border-gray-100 flex items-center justify-between">
+      <Logo />
+      <span className="text-xs font-semibold bg-preply-green-lg text-preply-green px-3 py-1 rounded-full">Hackathon 2026</span>
+    </header>
+
+    <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+      <div className="max-w-2xl w-full text-center">
+        <h1 className="text-5xl font-black text-preply-navy leading-[1.1] mb-5">
+          See what a lesson<br/>
+          <span className="text-preply-green">really taught</span>
+        </h1>
+        <p className="text-gray-400 text-lg mb-14 leading-relaxed">
+          12 metrics · Deepgram · Claude · One dashboard<br/>that tells the whole story of a language session.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Import */}
+          <button onClick={onImport}
+            className="card-hover group bg-preply-navy text-white rounded-3xl p-8 text-left">
+            <div className="mb-5 p-3 bg-white/10 rounded-2xl w-fit">
+              <Ic.folder />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Import Conversation</h2>
+            <p className="text-white/60 text-sm leading-relaxed mb-6">
+              Browse analyzed sessions — progression, plateaus, and CEFR jumps.
+            </p>
+            <span className="text-preply-green text-sm font-bold group-hover:translate-x-1 inline-flex transition-transform">
+              Explore sessions →
+            </span>
+          </button>
+
+          {/* Live */}
+          <button onClick={onLive}
+            className="card-hover group bg-preply-green text-white rounded-3xl p-8 text-left">
+            <div className="mb-5 p-3 bg-white/20 rounded-2xl w-fit">
+              <Ic.mic />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Live Demo</h2>
+            <p className="text-white/80 text-sm leading-relaxed mb-6">
+              Record a real tutor + student session and get the full analysis instantly.
+            </p>
+            <span className="text-white text-sm font-bold group-hover:translate-x-1 inline-flex transition-transform">
+              Start recording →
+            </span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer className="py-4 text-center text-xs text-gray-300">
+      Deepgram · Claude · Preply Data · Northflank
+    </footer>
+  </div>
+);
+
+// ─── IMPORT ───────────────────────────────────────────────────────────────────
+
+const ImportScreen = ({ onBack, onSelect }) => {
+  const [convos, setConvos]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy]       = useState(null);
+  const [error, setError]     = useState(null);
+
+  useEffect(() => {
+    fetch(`${API}/conversations`)
+      .then(r => r.json())
+      .then(data => { setConvos(data); setLoading(false); })
+      .catch(() => { setError("Can't reach the API. Is the server running?"); setLoading(false); });
+  }, []);
+
+  const pick = async (id) => {
+    setBusy(id);
+    try {
+      const r = await fetch(`${API}/analyze/preset/${id}`);
+      if (!r.ok) throw new Error(await r.text());
+      onSelect(await r.json());
+    } catch (e) {
+      alert("Error: " + e.message);
+      setBusy(null);
+    }
+  };
+
+  if (busy) return (
+    <div className="min-h-screen bg-preply-gray-bg">
+      <header className="px-8 py-5 bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto"><Logo /></div>
+      </header>
+      <Spinner msg="Running 12-metric analysis…" sub="Calling Deepgram + Claude — ~20 seconds" />
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-preply-gray-bg">
+      <header className="px-8 py-5 bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto flex items-center gap-4">
+          <button onClick={onBack} className="text-gray-300 hover:text-preply-navy transition-colors"><Ic.back /></button>
+          <Logo />
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-8 py-12">
+        <h2 className="text-3xl font-black text-preply-navy mb-2">Choose a conversation</h2>
+        <p className="text-gray-400 mb-10">First load calls Claude + Deepgram (~20 s). Subsequent loads are cached.</p>
+
+        {error && <p className="text-red-500 bg-red-50 rounded-xl px-4 py-3 mb-6 text-sm">{error}</p>}
+
+        {loading ? <Spinner msg="Loading…" /> : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {convos.map(c => (
+              <div key={c.id} className="card-hover bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
+                <div className="mb-4"><StoryBadge badge={c.badge} story={c.story} /></div>
+                <h3 className="font-bold text-preply-navy mb-2">{c.name}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed flex-1 mb-5">{c.description}</p>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                  <span className="text-xs text-gray-300">{c.sessions} session{c.sessions > 1 ? "s" : ""}</span>
+                  <button onClick={() => pick(c.id)}
+                    className="bg-preply-green hover:bg-preply-green-d text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors">
+                    Analyze →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+// ─── LIVE ─────────────────────────────────────────────────────────────────────
+
+const LiveScreen = ({ onBack }) => {
+  const [phase, setPhase] = useState("idle");
+  const phases = ["idle","recording","transcribing","analyzing","done"];
+  const idx = phases.indexOf(phase);
+
+  const steps = [
+    { key:"recording",    title:"Recording audio",            desc:"Capturing tutor + student microphones" },
+    { key:"transcribing", title:"Transcribing with Deepgram", desc:"Diarization · sentiment · per-word data" },
+    { key:"analyzing",    title:"Analyzing with Claude",      desc:"12 metrics · CEFR · gray zones" },
+    { key:"done",         title:"Dashboard ready",            desc:"All metrics computed" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-preply-gray-bg">
+      <header className="px-8 py-5 bg-white border-b border-gray-100">
+        <div className="max-w-3xl mx-auto flex items-center gap-4">
+          <button onClick={onBack} className="text-gray-300 hover:text-preply-navy transition-colors"><Ic.back /></button>
+          <Logo />
+        </div>
+      </header>
+
+      <main className="max-w-3xl mx-auto px-8 py-16 flex flex-col items-center">
+
+        {/* Big button */}
+        <div className="relative mb-10">
+          {phase === "recording" && (
+            <div className="absolute inset-0 rounded-full bg-red-400/20 pulse-ring" />
+          )}
+          <button
+            onClick={() => phase === "idle" ? setPhase("recording") : phase === "recording" ? setPhase("transcribing") : null}
+            className={`relative w-28 h-28 rounded-full flex items-center justify-center shadow-lg transition-all duration-300
+              ${phase === "idle"      ? "bg-preply-green hover:bg-preply-green-d text-white hover:scale-105" : ""}
+              ${phase === "recording" ? "bg-red-500 text-white" : ""}
+              ${phase !== "idle" && phase !== "recording" ? "bg-gray-200 text-gray-300 cursor-default" : ""}
+            `}>
+            {phase === "recording" ? <Ic.stop /> : <Ic.mic />}
+          </button>
+        </div>
+
+        <h2 className="text-2xl font-black text-preply-navy mb-2">
+          {phase === "idle"         && "Ready to record"}
+          {phase === "recording"    && "Recording…"}
+          {phase === "transcribing" && "Transcribing…"}
+          {phase === "analyzing"    && "Analyzing…"}
+          {phase === "done"         && "Done!"}
+        </h2>
+        <p className="text-gray-400 text-sm mb-12 text-center">
+          {phase === "idle"      && "Press to start capturing the session"}
+          {phase === "recording" && "Press again when the session ends"}
+          {(phase === "transcribing" || phase === "analyzing") && "Processing — takes about 20 seconds"}
+          {phase === "done"      && "Your dashboard is ready"}
+        </p>
+
+        {/* Pipeline steps */}
+        <div className="w-full max-w-md space-y-2">
+          {steps.map((step, i) => {
+            const si    = i + 1;
+            const done  = idx > si;
+            const active= idx === si;
+            return (
+              <div key={step.key} className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl border transition-all
+                ${active ? "bg-preply-green-lg border-preply-green/20" : "bg-white border-gray-100"}
+                ${!active && !done ? "opacity-40" : ""}
+              `}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold
+                  ${done   ? "bg-preply-green text-white" : ""}
+                  ${active ? "bg-preply-green/20 text-preply-green" : ""}
+                  ${!active && !done ? "bg-gray-100 text-gray-400" : ""}
+                `}>
+                  {done ? <Ic.check /> : i + 1}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-preply-navy">{step.title}</p>
+                  <p className="text-xs text-gray-400">{step.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="mt-10 text-xs text-gray-300 text-center">
+          Wires into record.py → transcribe_rich.py → FastAPI
+        </p>
+      </main>
+    </div>
+  );
+};
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+
+const Dashboard = ({ data, onBack }) => {
+  const [tab, setTab] = useState(0);
+  const { sessions, progression, preset } = data;
+  const s = sessions?.[tab];
+
+  if (!s) return <div className="p-8 text-gray-400">No session data.</div>;
+
+  return (
+    <div className="min-h-screen bg-preply-gray-bg">
+
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="text-gray-300 hover:text-preply-navy transition-colors"><Ic.back /></button>
+            <Logo />
+            {preset && <StoryBadge badge={preset.badge} story={preset.story} />}
+          </div>
+          <CEFRBadge level={s.cefr?.level || "?"} />
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-6 py-8">
+
+        {/* Session tabs */}
+        {sessions.length > 1 && (
+          <div className="flex gap-1 mb-6 bg-white border border-gray-100 rounded-2xl p-1 w-fit">
+            {sessions.map((sess, i) => (
+              <button key={i} onClick={() => setTab(i)}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all
+                  ${tab === i ? "bg-preply-navy text-white shadow-sm" : "text-gray-400 hover:text-preply-navy"}`}>
+                {sess.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Progression summary */}
+        {progression && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+            <h3 className="text-xs font-bold text-preply-green uppercase tracking-widest mb-4">
+              Progression · {progression.cefr_journey.join(" → ")}
+            </h3>
+
+            {/* Table */}
+            <div className="overflow-x-auto mb-5">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left text-xs font-semibold text-gray-400 uppercase pb-2 w-40">Metric</th>
+                    {progression.labels.map(l => (
+                      <th key={l} className="text-right text-xs font-semibold text-gray-400 uppercase pb-2">{l}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Talk time %",   progression.metrics_table.talk_time_pct, v => v + "%"],
+                    ["New words",     progression.metrics_table.new_words,     v => v],
+                    ["Total vocab",   progression.metrics_table.total_vocab,   v => v],
+                    ["Fillers",       progression.metrics_table.fillers,       v => v],
+                    ["Agency / 10",   progression.metrics_table.agency_score,  v => v],
+                    ["Active recall", progression.metrics_table.active_recall, v => v],
+                    ["CEFR",          progression.metrics_table.cefr,          v => v],
+                  ].map(([name, vals, fmt]) => (
+                    <tr key={name} className="border-t border-gray-50">
+                      <td className="py-2 text-gray-500 text-sm">{name}</td>
+                      {vals.map((v, i) => (
+                        <td key={i} className="py-2 text-right font-bold text-preply-navy">{fmt(v)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Signals */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {progression.signals.map(sig => (
+                <span key={sig.name}
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full
+                    ${sig.positive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400"}`}>
+                  {sig.positive ? <Ic.check /> : <Ic.x />}
+                  {sig.name}
+                </span>
+              ))}
+            </div>
+
+            {/* Verdict */}
+            <div className={`rounded-xl px-4 py-3 text-sm font-bold
+              ${progression.positive_count >= 4 ? "bg-green-50 text-green-800" : ""}
+              ${progression.positive_count >= 2 && progression.positive_count < 4 ? "bg-yellow-50 text-yellow-800" : ""}
+              ${progression.positive_count < 2  ? "bg-red-50 text-red-800" : ""}
+            `}>
+              {progression.positive_count}/{progression.total_signals} signals · {progression.verdict}
+            </div>
+          </div>
+        )}
+
+        {/* CEFR hero */}
+        <div className="bg-preply-navy rounded-2xl p-6 text-white mb-6">
+          <div className="flex items-start justify-between mb-2">
+            <span className="text-xs font-bold text-preply-green uppercase tracking-widest">CEFR Estimate</span>
+            <div className="text-right">
+              <span className="text-4xl font-black">{s.cefr?.level}</span>
+              <span className="text-white/40 text-xs ml-2">{s.cefr?.confidence}</span>
+            </div>
+          </div>
+          <p className="text-white/70 text-sm leading-relaxed">{s.cefr?.reasoning}</p>
+        </div>
+
+        {/* 12 metric grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          {/* 01 Talk Ratio */}
+          <MCard tag="Base" title="Talk Ratio" sub="Who owned the floor">
+            <div className="space-y-2.5 mb-4">
+              <Bar value={s.talk_ratio.student_pct} label="Student" right={`${s.talk_ratio.student_pct}%`} />
+              <Bar value={s.talk_ratio.tutor_pct}   label="Tutor"   right={`${s.talk_ratio.tutor_pct}%`}  color="bg-gray-300" />
+            </div>
+            <Pill
+              text={s.talk_ratio.status === "healthy" ? "✓ Student owns the floor" : s.talk_ratio.status === "passive" ? "⚠ Student too passive" : "~ Balanced"}
+              variant={s.talk_ratio.status === "healthy" ? "green" : s.talk_ratio.status === "passive" ? "red" : "orange"}
+            />
+          </MCard>
+
+          {/* 02 New Words */}
+          <MCard tag="Base" title="New Words" sub="Vocabulary that appeared for the first time">
+            <div className="flex items-end gap-3 mb-3">
+              <span className="text-4xl font-black text-preply-navy">{s.new_words.new_count}</span>
+              <span className="text-sm text-gray-400 mb-1">new · {s.new_words.total_vocab} total</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {s.new_words.sample.slice(0, 9).map(w => (
+                <Pill key={w} text={w} variant="green" />
+              ))}
+            </div>
+          </MCard>
+
+          {/* 03 Top Errors */}
+          <MCard tag="Base" title="Top 3 Errors" sub="What went wrong — and the fix">
+            <div className="space-y-2.5">
+              {(s.top_errors || []).slice(0, 3).map((e, i) => (
+                <div key={i} className="bg-red-50 rounded-xl p-3 space-y-1">
+                  <span className="text-xs font-bold text-red-500 uppercase">{e.type}</span>
+                  <p className="text-xs text-red-600">✗ "{e.error}"</p>
+                  <p className="text-xs text-green-700">✓ "{e.correction}"</p>
+                </div>
+              ))}
+            </div>
+          </MCard>
+
+          {/* 04 Summary */}
+          <MCard tag="Base" title="Session Summary" sub="What happened — two lines">
+            <p className="text-sm text-gray-600 leading-relaxed">{s.session_summary || "—"}</p>
+          </MCard>
+
+          {/* 05 Agency */}
+          <MCard tag="Differentiator" title="Conversational Agency" sub="Passenger or driver?">
+            <div className="flex items-center gap-4 mb-3">
+              <span className="text-4xl font-black text-preply-navy">{s.agency.score}</span>
+              <div className="flex-1">
+                <Bar value={s.agency.score} max={10} />
+                <p className="text-xs text-gray-400 mt-1">{s.agency.pct}% student-initiated</p>
+              </div>
+            </div>
+            <div className="flex gap-4 text-sm text-gray-400 mb-3">
+              <span>Initiations <strong className="text-preply-navy">{s.agency.initiations}</strong></span>
+              <span>Responses <strong className="text-preply-navy">{s.agency.responses}</strong></span>
+            </div>
+            <Pill
+              text={s.agency.status}
+              variant={s.agency.status === "proactive" ? "green" : s.agency.status === "developing" ? "orange" : "red"}
+            />
+          </MCard>
+
+          {/* 06 Active Recall */}
+          <MCard tag="Differentiator" title="Active Recall" sub="Did last session stick?">
+            {s.active_recall.is_first_session
+              ? <p className="text-sm text-gray-400">First session — nothing to cross-reference yet.</p>
+              : s.active_recall.count === 0
+                ? <p className="text-sm font-semibold text-orange-600">0 words from last session reused spontaneously.</p>
+                : <>
+                    <span className="text-4xl font-black text-preply-navy">{s.active_recall.count}</span>
+                    <span className="text-sm text-gray-400 ml-2 mb-3 inline-block">words reused</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {s.active_recall.words.slice(0, 9).map(w => <Pill key={w} text={w} variant="blue" />)}
+                    </div>
+                  </>
+            }
+          </MCard>
+
+          {/* 07 Self-Repair */}
+          <MCard tag="Differentiator" title="Self-Repair Rate" sub="Mistakes caught before the tutor">
+            <span className="text-4xl font-black text-preply-navy">{s.self_repairs?.count ?? 0}</span>
+            <span className="text-sm text-gray-400 ml-2">self-corrections</span>
+            {s.self_repairs?.verdict && (
+              <p className="text-sm text-gray-500 mt-3 leading-relaxed">{s.self_repairs.verdict}</p>
+            )}
+            {s.self_repairs?.examples?.[0] && (
+              <p className="text-xs text-gray-400 mt-2 italic">"{s.self_repairs.examples[0].slice(0, 90)}"</p>
+            )}
+          </MCard>
+
+          {/* 08 Filler Pressure */}
+          <MCard tag="Differentiator" title="Filler Pressure Map" sub="Where hesitation clusters by topic">
+            <div className="flex items-end gap-2 mb-4">
+              <span className="text-4xl font-black text-preply-navy">{s.filler_pressure.total}</span>
+              <span className="text-sm text-gray-400 mb-1">total fillers</span>
+            </div>
+            {s.filler_pressure.by_topic && Object.keys(s.filler_pressure.by_topic).length > 0 ? (
+              <div className="space-y-2.5">
+                {Object.entries(s.filler_pressure.by_topic)
+                  .sort((a, b) => b[1] - a[1]).slice(0, 4)
+                  .map(([topic, count]) => {
+                    const mx = Math.max(...Object.values(s.filler_pressure.by_topic));
+                    return (
+                      <div key={topic} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 w-28 truncate shrink-0">{topic}</span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                          <div className="bg-orange-400 h-1.5 rounded-full transition-all duration-700"
+                            style={{ width: `${(count / mx) * 100}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-600 w-4 text-right shrink-0">{count}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : <p className="text-sm text-gray-400">No topic mapping available</p>}
+          </MCard>
+
+          {/* 09 Code-Switching */}
+          <MCard tag="Differentiator" title="Code-Switching" sub="When English wasn't enough">
+            <span className="text-4xl font-black text-preply-navy">{s.code_switching.count}</span>
+            <span className="text-sm text-gray-400 ml-2">switches</span>
+            {s.code_switching.count === 0
+              ? <p className="text-xs text-green-600 font-semibold mt-2">✓ Stayed in English throughout</p>
+              : <div className="mt-3 space-y-1">
+                  {s.code_switching.instances.slice(0, 2).map((inst, i) => (
+                    <p key={i} className="text-xs text-gray-400">· [{inst.lang?.toUpperCase()}] "{inst.txt?.slice(0, 60)}"</p>
+                  ))}
+                </div>
+            }
+          </MCard>
+
+          {/* 10 Gray Zones */}
+          <MCard tag="Differentiator" title="Gray Zones Map" sub="Grammar avoided — not just wrong">
+            {s.gray_zones?.avoided?.length > 0 ? (
+              <div className="space-y-2.5">
+                {s.gray_zones.avoided.slice(0, 3).map((item, i) => (
+                  <div key={i} className="bg-purple-50 rounded-xl p-3">
+                    <p className="text-xs font-bold text-purple-700 uppercase mb-1">{item.structure}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">{item.expected_because}</p>
+                  </div>
+                ))}
+                {s.gray_zones.verdict && (
+                  <p className="text-xs text-gray-400 italic mt-1">{s.gray_zones.verdict}</p>
+                )}
+              </div>
+            ) : <p className="text-sm text-gray-400">No avoidance patterns detected</p>}
+          </MCard>
+
+          {/* 11 Sentiment Arc */}
+          <MCard tag="Differentiator" title="Sentiment Arc" sub="Confidence shape through the session">
+            {s.sentiment_arc.available ? (
+              <>
+                <div className="bg-gray-50 rounded-xl px-3 py-2 font-mono text-xs text-gray-400 mb-4 overflow-hidden leading-tight">
+                  {s.sentiment_arc.data.slice(0, 48).map((a, i) => (
+                    <span key={i} className={a.s === "positive" ? "text-green-500" : a.s === "negative" ? "text-red-400" : "text-gray-300"}>
+                      {a.s === "positive" ? "▲" : a.s === "negative" ? "▼" : "─"}
+                    </span>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  <Bar value={s.sentiment_arc.positive_pct} label="Confident" right={`${s.sentiment_arc.positive_pct}%`} color="bg-green-400" />
+                  <Bar value={s.sentiment_arc.neutral_pct}  label="Neutral"   right={`${s.sentiment_arc.neutral_pct}%`}  color="bg-gray-300" />
+                  <Bar value={s.sentiment_arc.negative_pct} label="Pressure"  right={`${s.sentiment_arc.negative_pct}%`} color="bg-red-400" />
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-gray-400">Available with enriched Deepgram recordings.<br/>
+                <span className="text-xs">Requires diarize=true + sentiment=true.</span></p>
+            )}
+          </MCard>
+
+          {/* 12 Topic Expansion */}
+          <MCard tag="Differentiator" title="Topic Expansion" sub="Is the student's world growing?">
+            {s.topic_expansion.new_topics.length > 0 ? (
+              <>
+                <p className="text-xs text-gray-400 mb-2">{s.topic_expansion.new_topics.length} new topics unlocked</p>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {s.topic_expansion.new_topics.map(t => <Pill key={t} text={"[NEW] " + t} variant="green" />)}
+                </div>
+                {s.topic_expansion.recurring_topics.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {s.topic_expansion.recurring_topics.slice(0, 4).map(t => <Pill key={t} text={"↻ " + t} variant="gray" />)}
+                  </div>
+                )}
+              </>
+            ) : s.topic_expansion.all_topics.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {s.topic_expansion.all_topics.slice(0, 6).map(t => <Pill key={t} text={t} variant="gray" />)}
+              </div>
+            ) : <p className="text-sm text-gray-400">No topic data available</p>}
+          </MCard>
+
+        </div>
+      </main>
+    </div>
+  );
+};
+
+// ─── APP ─────────────────────────────────────────────────────────────────────
+
+const App = () => {
+  const [screen, setScreen]   = useState("home");
+  const [result, setResult]   = useState(null);
+
+  const go = (s) => setScreen(s);
+
+  if (screen === "home")      return <HomeScreen  onImport={() => go("import")} onLive={() => go("live")} />;
+  if (screen === "import")    return <ImportScreen onBack={() => go("home")}    onSelect={d => { setResult(d); go("dashboard"); }} />;
+  if (screen === "live")      return <LiveScreen   onBack={() => go("home")} />;
+  if (screen === "dashboard") return <Dashboard    data={result}               onBack={() => go("import")} />;
+  return null;
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

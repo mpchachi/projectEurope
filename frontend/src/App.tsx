@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fetchConversations, fetchPreset } from './api'
 import Dashboard from './components/Dashboard'
@@ -88,9 +88,9 @@ function ImportScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (dat
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError]   = useState<string | null>(null)
 
-  useState(() => {
+  useEffect(() => {
     fetchConversations().then(setCards).catch(() => setError('Could not load conversations'))
-  })
+  }, [])
 
   async function handleSelect(id: string) {
     setLoading(id); setError(null)
@@ -244,28 +244,31 @@ export default function App() {
 
   function showDashboard(data: AnalysisResult) { setResult(data); setScreen('dashboard') }
 
+  const pageKey = screen === 'dashboard' ? 'dashboard' : screen
+
   return (
-    <AnimatePresence mode="wait">
-      {screen === 'home' && (
-        <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={pageKey}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
+        style={{ minHeight: '100vh' }}
+      >
+        {screen === 'home' && (
           <HomeScreen onImport={() => setScreen('import')} onLive={() => setScreen('live')} />
-        </motion.div>
-      )}
-      {screen === 'import' && (
-        <motion.div key="import" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        )}
+        {screen === 'import' && (
           <ImportScreen onBack={() => setScreen('home')} onSelect={showDashboard} />
-        </motion.div>
-      )}
-      {screen === 'live' && (
-        <motion.div key="live" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        )}
+        {screen === 'live' && (
           <LiveScreen onBack={() => setScreen('home')} />
-        </motion.div>
-      )}
-      {screen === 'dashboard' && result && (
-        <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        )}
+        {screen === 'dashboard' && result && (
           <Dashboard data={result} onBack={() => setScreen('import')} />
-        </motion.div>
-      )}
+        )}
+      </motion.div>
     </AnimatePresence>
   )
 }
